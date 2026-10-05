@@ -16,12 +16,15 @@ Le propriétaire du dépôt construit sa **première application** et découvre 
 - MVP : connexion Spotify, timer de 45 minutes, pause de Spotify à la fin.
 - Hors périmètre : timer personnalisable, autres outils musicaux.
 
+## Décisions prises
+- Type d'application : **appli web sans backend**.
+- Déroulé du MVP : un seul timer fixe de 45 minutes. La musique démarre automatiquement avec le timer. Pas de phase de pause ni de reprise de la musique : pour recommencer, l'utilisateur relance un timer.
+- Playlist : pas de choix de playlist dans le MVP. L'appli reprend la lecture en cours dans l'appli Spotify de l'utilisateur.
+- Critère de réussite : « je lance un timer de 45 min, et à 0:00 ma musique Spotify se met en pause toute seule ».
+
 ## Décisions ouvertes
 À trancher avec le propriétaire avant d'écrire du code. Mettre à jour cette liste au fur et à mesure.
-- [ ] Type d'application (recommandation : appli web sans backend)
-- [ ] Déroulé d'un cycle : démarrage auto de la musique ? comportement pendant la pause ?
-- [ ] Choix de la playlist : lien collé ou liste des playlists de l'utilisateur
-- [ ] Critère de réussite précis du MVP
+- [ ] Stack technique de l'appli web (2 options à présenter avec une recommandation)
 
 ## Contraintes Spotify
 - Contrôler la lecture via l'API exige un compte **Spotify Premium**.
