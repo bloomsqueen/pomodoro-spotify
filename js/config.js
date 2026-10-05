@@ -9,4 +9,4 @@ export const SPOTIFY_SCOPES = [
   'user-modify-playback-state',
 ];
 
-export const TIMER_DURATION_MINUTES = 45; // durée fixe pour le MVP
+export const TIMER_DURATION_MINUTES = 0.1; // durée fixe pour le MVP
