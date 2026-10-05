@@ -1,0 +1,17 @@
+# Secrets et configuration locale
+.env
+.env.*
+!.env.example
+
+# Dépendances et builds (JavaScript)
+node_modules/
+dist/
+build/
+
+# Fichiers système et éditeurs
+.DS_Store
+.idea/
+.vscode/
+
+# Réglages Claude personnels
+.claude/settings.local.json
