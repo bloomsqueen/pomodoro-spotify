@@ -1,0 +1,23 @@
+body {
+  font-family: system-ui, sans-serif;
+  display: flex;
+  justify-content: center;
+  margin: 0;
+  padding: 2rem 1rem;
+}
+
+main {
+  text-align: center;
+}
+
+#timer-display {
+  font-size: 4rem;
+  font-variant-numeric: tabular-nums;
+  margin: 1rem 0;
+}
+
+button {
+  font-size: 1rem;
+  padding: 0.6rem 1.2rem;
+  cursor: pointer;
+}
