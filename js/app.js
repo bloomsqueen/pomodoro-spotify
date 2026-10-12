@@ -1,9 +1,9 @@
 // Point d'entrée : relie la page (boutons, affichage), le timer et Spotify.
 // Le timer démarre la musique, et la met en pause à la fin.
 
-import { SPOTIFY_REDIRECT_URI, TIMER_DURATION_MINUTES } from './config.js';
+import { TIMER_DURATION_MINUTES } from './config.js';
 import { createTimer, formatTime } from './timer.js';
-import { handleRedirect, isLoggedIn, login, pausePlayback, resumePlayback } from './spotify.js';
+import { handleRedirect, isLoggedIn, login, pausePlayback, redirectUriProblem, resumePlayback } from './spotify.js';
 
 const timerDisplay = document.getElementById('timer-display');
 const startButton = document.getElementById('start-button');
@@ -99,9 +99,13 @@ const REDIRECT_MESSAGES = {
 async function init() {
   timerDisplay.textContent = formatTime(durationSeconds);
 
-  // Spotify ne renvoie vers l'adresse exacte déclarée dans le Dashboard : 127.0.0.1, pas localhost.
-  if (window.location.origin !== new URL(SPOTIFY_REDIRECT_URI).origin) {
-    message.textContent = `Ouvre l'appli à l'adresse ${SPOTIFY_REDIRECT_URI} pour pouvoir te connecter à Spotify.`;
+  // Spotify refuse certaines adresses de retour (localhost, http hors 127.0.0.1) : on explique quoi faire.
+  const problem = redirectUriProblem();
+  if (problem) {
+    const port = window.location.port ? `:${window.location.port}` : '';
+    message.textContent = problem === 'localhost'
+      ? `Ouvre l'appli à l'adresse http://127.0.0.1${port}/ (et pas localhost) pour pouvoir te connecter à Spotify.`
+      : 'Spotify n\'accepte que les adresses en https (ou 127.0.0.1). Ouvre l\'appli en https pour pouvoir te connecter.';
     connectButton.disabled = true;
     startButton.disabled = true;
     return;
