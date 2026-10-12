@@ -79,7 +79,7 @@ startButton.addEventListener('click', async () => {
   startButton.disabled = true;
 
   // On lance la musique d'abord : si Spotify refuse, le timer ne démarre pas et on explique pourquoi.
-  const result = await resumePlayback();
+  const result = await resumePlayback(durationSeconds * 1000);
   if (!result.ok) {
     message.textContent = PLAYER_ERRORS[result.reason];
     updateConnectionUi();

@@ -91,10 +91,12 @@ export async function handleRedirect() {
   }
 }
 
-function saveTokens({ access_token, refresh_token, expires_in }) {
+// Spotify ne renvoie pas toujours un nouveau jeton de rafraîchissement quand on en utilise un :
+// dans ce cas, on garde l'ancien (qui reste valable).
+function saveTokens({ access_token, refresh_token, expires_in }, previousRefreshToken = null) {
   sessionStorage.setItem(KEY_TOKENS, JSON.stringify({
     accessToken: access_token,
-    refreshToken: refresh_token ?? null,
+    refreshToken: refresh_token ?? previousRefreshToken,
     expiresAt: Date.now() + expires_in * 1000,
   }));
 }
@@ -107,48 +109,126 @@ function readTokens() {
   }
 }
 
-// Vrai si on a un jeton d'accès encore valable.
+// Vrai si on est connecté : un jeton d'accès encore valable, ou de quoi en obtenir un nouveau.
 export function isLoggedIn() {
   const tokens = readTokens();
-  return Boolean(tokens && tokens.accessToken && Date.now() < tokens.expiresAt);
+  if (!tokens) return false;
+  return Boolean((tokens.accessToken && Date.now() < tokens.expiresAt) || tokens.refreshToken);
+}
+
+// --- Renouvellement du jeton d'accès ---
+// Le jeton d'accès dure 1 heure. Le jeton de rafraîchissement permet d'en obtenir un nouveau
+// sans redemander l'accord de l'utilisateur.
+
+const SAFETY_MARGIN_MS = 30 * 1000; // on renouvelle un peu avant l'expiration réelle
+let refreshInFlight = null; // évite deux renouvellements en même temps
+
+// Renvoie { accessToken } ou { reason } avec reason parmi 'expired', 'network', 'error'.
+function refreshAccessToken() {
+  if (!refreshInFlight) {
+    refreshInFlight = doRefresh().finally(() => {
+      refreshInFlight = null;
+    });
+  }
+  return refreshInFlight;
+}
+
+async function doRefresh() {
+  const tokens = readTokens();
+  if (!tokens || !tokens.refreshToken) {
+    sessionStorage.removeItem(KEY_TOKENS);
+    return { reason: 'expired' };
+  }
+
+  let response;
+  try {
+    response = await fetch(TOKEN_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: tokens.refreshToken,
+        client_id: SPOTIFY_CLIENT_ID, // avec PKCE : l'identifiant suffit, pas de secret
+      }),
+    });
+  } catch {
+    return { reason: 'network' }; // panne passagère : on garde les jetons pour réessayer
+  }
+
+  let body = null;
+  try {
+    body = await response.json();
+  } catch {
+    // Réponse illisible : traitée plus bas.
+  }
+
+  if (response.ok && body && body.access_token) {
+    saveTokens(body, tokens.refreshToken);
+    return { accessToken: body.access_token };
+  }
+
+  // 'invalid_grant' : le jeton de rafraîchissement est révoqué ou expiré. Il faut se reconnecter.
+  if (body && body.error === 'invalid_grant') {
+    sessionStorage.removeItem(KEY_TOKENS);
+    return { reason: 'expired' };
+  }
+  return { reason: 'error' };
+}
+
+// Renvoie un jeton d'accès valable au moins `minLifetimeMs` de plus, en le renouvelant si besoin.
+// Renvoie { accessToken } ou { reason }.
+async function getAccessToken(minLifetimeMs = 0) {
+  const tokens = readTokens();
+  if (!tokens) return { reason: 'expired' };
+
+  const stillGood = tokens.accessToken && Date.now() + minLifetimeMs + SAFETY_MARGIN_MS < tokens.expiresAt;
+  if (stillGood) return { accessToken: tokens.accessToken };
+  return refreshAccessToken();
 }
 
 // --- Lecture : reprendre et mettre en pause ---
 
 const API_URL = 'https://api.spotify.com/v1';
 
-// Le jeton d'accès s'il est encore valable, sinon null.
-function readAccessToken() {
-  const tokens = readTokens();
-  return tokens && Date.now() < tokens.expiresAt ? tokens.accessToken : null;
-}
-
-// Envoie une commande de lecture à Spotify.
-// Renvoie { ok: true } ou { ok: false, reason } avec reason parmi :
-// 'expired', 'no-device', 'premium', 'forbidden', 'rate-limit', 'network', 'error'.
-async function playerCommand(path) {
-  const accessToken = readAccessToken();
-  if (!accessToken) return { ok: false, reason: 'expired' };
-
-  let response;
+async function sendPlayerCommand(path, accessToken) {
   try {
-    response = await fetch(`${API_URL}${path}`, {
+    return await fetch(`${API_URL}${path}`, {
       method: 'PUT',
       headers: { Authorization: `Bearer ${accessToken}` },
     });
   } catch {
-    return { ok: false, reason: 'network' };
+    return null;
+  }
+}
+
+// Envoie une commande de lecture à Spotify.
+// `minLifetimeMs` : durée pendant laquelle le jeton doit encore être valable (voir resumePlayback).
+// Renvoie { ok: true } ou { ok: false, reason } avec reason parmi :
+// 'expired', 'no-device', 'premium', 'forbidden', 'rate-limit', 'network', 'error'.
+async function playerCommand(path, minLifetimeMs = 0) {
+  const auth = await getAccessToken(minLifetimeMs);
+  if (!auth.accessToken) return { ok: false, reason: auth.reason };
+
+  let response = await sendPlayerCommand(path, auth.accessToken);
+  if (!response) return { ok: false, reason: 'network' };
+
+  // Jeton refusé alors qu'on le croyait valable (révoqué, horloge décalée) : un nouvel essai avec un jeton neuf.
+  if (response.status === 401) {
+    const renewed = await refreshAccessToken();
+    if (!renewed.accessToken) return { ok: false, reason: renewed.reason };
+    response = await sendPlayerCommand(path, renewed.accessToken);
+    if (!response) return { ok: false, reason: 'network' };
+    if (response.status === 401) {
+      sessionStorage.removeItem(KEY_TOKENS);
+      return { ok: false, reason: 'expired' };
+    }
   }
 
   if (response.ok) return { ok: true }; // Spotify répond 204 : fait, rien à lire
-
-  // Jeton refusé (révoqué, par exemple) : on l'oublie, pour que l'appli propose de se reconnecter.
-  if (response.status === 401) sessionStorage.removeItem(KEY_TOKENS);
   return { ok: false, reason: await explainFailure(response) };
 }
 
 async function explainFailure(response) {
-  if (response.status === 401) return 'expired';
   if (response.status === 429) return 'rate-limit';
 
   let apiReason = '';
@@ -164,8 +244,10 @@ async function explainFailure(response) {
 }
 
 // Reprend la lecture en cours sur l'appareil actif (sans corps : on ne choisit pas de playlist).
-export function resumePlayback() {
-  return playerCommand('/me/player/play');
+// `sessionMs` : durée prévue de la session. Si le jeton ne tiendra pas jusque-là, on le renouvelle
+// tout de suite, pour que la pause de la fin n'ait pas à le faire au dernier moment.
+export function resumePlayback(sessionMs = 0) {
+  return playerCommand('/me/player/play', sessionMs);
 }
 
 export function pausePlayback() {
