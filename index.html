@@ -3,19 +3,106 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Un timer pomodoro de 45 minutes qui met ta musique Spotify en pause tout seul.">
   <title>Pomodoro Spotify</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <main>
-    <h1>Pomodoro Spotify</h1>
+  <a class="skip-link" href="#contenu">Aller au contenu</a>
 
-    <button id="connect-button">Se connecter à Spotify</button>
+  <!-- Les petits décors (étoiles, cœurs, notes) sont masqués aux lecteurs d'écran avec aria-hidden. -->
+  <div class="sky" aria-hidden="true">
+    <span class="deco deco-1">★</span>
+    <span class="deco deco-2">♡</span>
+    <span class="deco deco-3">♪</span>
+    <span class="deco deco-4">✦</span>
+    <span class="deco deco-5">♪</span>
+    <span class="deco deco-6">★</span>
+  </div>
 
-    <p id="timer-display">45:00</p>
-    <button id="start-button" disabled>Démarrer (45 min)</button>
+  <main id="contenu">
+    <header class="banner">
+      <p class="kaomoji" aria-hidden="true">˚ʚ♡ɞ˚ &nbsp; ✧ bienvenue ✧ &nbsp; ˚ʚ♡ɞ˚</p>
+      <h1>Pomodoro <span aria-hidden="true">♪</span> Spotify</h1>
+      <p class="tagline">Travaille 45 minutes avec ta propre musique. Quand c'est fini, Spotify se met en pause tout seul.</p>
+    </header>
 
-    <p id="message" role="status"></p>
+    <!-- Une fenêtre façon vieux Windows : le décor est en CSS, le contenu reste du vrai texte. -->
+    <section class="window" aria-labelledby="titre-fenetre">
+      <div class="window-bar">
+        <h2 id="titre-fenetre">pomodoro.exe</h2>
+        <span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+      </div>
+
+      <div class="window-body">
+        <svg class="scene" viewBox="0 0 320 170" aria-hidden="true" focusable="false">
+          <defs>
+            <linearGradient id="nuit" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#1c0f4a"/>
+              <stop offset="0.6" stop-color="#5a2a8c"/>
+              <stop offset="1" stop-color="#ff8fcd"/>
+            </linearGradient>
+          </defs>
+          <rect x="0" y="0" width="320" height="170" fill="#ffd8ee"/>
+          <rect x="60" y="14" width="200" height="124" rx="8" fill="url(#nuit)" stroke="#3b1d6e" stroke-width="6"/>
+          <circle cx="212" cy="46" r="17" fill="#fff3b0"/>
+          <circle cx="220" cy="41" r="15" fill="#3b1f78"/>
+          <g fill="#fff">
+            <circle cx="90" cy="34" r="1.6"/><circle cx="118" cy="52" r="1.2"/><circle cx="150" cy="30" r="1.8"/>
+            <circle cx="176" cy="60" r="1.2"/><circle cx="240" cy="78" r="1.4"/><circle cx="104" cy="74" r="1"/>
+          </g>
+          <g fill="#2a1259">
+            <rect x="66" y="96" width="30" height="36"/><rect x="100" y="84" width="24" height="48"/>
+            <rect x="128" y="102" width="34" height="30"/><rect x="166" y="90" width="26" height="42"/>
+            <rect x="196" y="104" width="30" height="28"/><rect x="230" y="92" width="26" height="40"/>
+          </g>
+          <g fill="#ffe27a">
+            <rect x="72" y="104" width="5" height="6"/><rect x="82" y="116" width="5" height="6"/>
+            <rect x="106" y="94" width="5" height="6"/><rect x="106" y="108" width="5" height="6"/>
+            <rect x="136" y="110" width="5" height="6"/><rect x="172" y="100" width="5" height="6"/>
+            <rect x="176" y="114" width="5" height="6"/><rect x="204" y="112" width="5" height="6"/>
+            <rect x="238" y="102" width="5" height="6"/><rect x="242" y="118" width="5" height="6"/>
+          </g>
+          <line x1="160" y1="14" x2="160" y2="138" stroke="#3b1d6e" stroke-width="5"/>
+          <line x1="60" y1="76" x2="260" y2="76" stroke="#3b1d6e" stroke-width="5"/>
+          <rect x="50" y="138" width="220" height="10" rx="4" fill="#3b1d6e"/>
+          <g class="mug">
+            <rect x="98" y="150" width="26" height="18" rx="4" fill="#7ef0c9" stroke="#3b1d6e" stroke-width="3"/>
+            <path d="M124 154 q10 0 10 8 q0 8 -10 8" fill="none" stroke="#3b1d6e" stroke-width="3"/>
+            <path class="steam" d="M105 146 q-4 -6 0 -11 q4 -5 0 -10" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+            <path class="steam steam-2" d="M115 146 q-4 -6 0 -11 q4 -5 0 -10" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+          </g>
+        </svg>
+
+        <p class="lcd-label" id="etiquette-timer">Temps restant</p>
+        <div class="lcd">
+          <p id="timer-display" role="timer" aria-labelledby="etiquette-timer">45:00</p>
+          <div class="equalizer" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+
+        <div class="buttons">
+          <button id="connect-button" type="button" class="btn btn-pink">Se connecter à Spotify</button>
+          <button id="start-button" type="button" class="btn btn-mint" disabled>Démarrer (45 min)</button>
+        </div>
+
+        <p id="message" class="bubble" role="status"></p>
+      </div>
+    </section>
+
+    <section class="features" aria-labelledby="titre-principe">
+      <h2 id="titre-principe">⚠ Ce site contient ⚠</h2>
+      <ul>
+        <li>Ta propre musique, avec ton compte Spotify Premium.</li>
+        <li>Un seul timer, fixe : 45 minutes.</li>
+        <li>Une pause automatique de Spotify à 0:00.</li>
+      </ul>
+    </section>
+
+    <footer>
+      <p>Fait avec <span aria-hidden="true">♥</span> pour travailler en musique.</p>
+      <button id="motion-toggle" type="button" class="btn btn-small" aria-pressed="false">Animations : activées</button>
+    </footer>
   </main>
 
   <!-- type="module" permet de découper le JavaScript en plusieurs fichiers -->

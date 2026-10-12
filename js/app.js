@@ -18,10 +18,36 @@ const timer = createTimer({
     timerDisplay.textContent = formatTime(remainingSeconds);
   },
   onEnd() {
+    document.body.classList.remove('is-running');
     message.textContent = 'Temps écoulé !';
     updateConnectionUi();
   },
 });
+
+// Bouton « Animations » : permet de couper les animations décoratives (en plus du réglage du système).
+const motionToggle = document.getElementById('motion-toggle');
+const MOTION_KEY = 'animations_off';
+
+function setCalm(calm) {
+  document.body.classList.toggle('calm', calm);
+  motionToggle.setAttribute('aria-pressed', String(calm));
+  motionToggle.textContent = calm ? 'Animations : désactivées' : 'Animations : activées';
+  try {
+    sessionStorage.setItem(MOTION_KEY, calm ? '1' : '0');
+  } catch {
+    // Stockage indisponible : le choix vaut simplement pour cette page.
+  }
+}
+
+motionToggle.addEventListener('click', () => {
+  setCalm(!document.body.classList.contains('calm'));
+});
+
+try {
+  if (sessionStorage.getItem(MOTION_KEY) === '1') setCalm(true);
+} catch {
+  // Stockage indisponible : on garde l'état par défaut.
+}
 
 // Le bouton Démarrer n'est utilisable que si on est connecté à Spotify.
 function updateConnectionUi() {
@@ -37,6 +63,7 @@ connectButton.addEventListener('click', () => {
 startButton.addEventListener('click', () => {
   message.textContent = '';
   startButton.disabled = true;
+  document.body.classList.add('is-running');
   timer.start();
 });
 

@@ -1,23 +1,522 @@
+/* Pomodoro Spotify : ambiance skyblog des années 2000 (jour) et lofi de nuit (mode sombre).
+   Règle de lisibilité : le texte est toujours posé sur un fond uni (panneau, bouton, écran LCD),
+   jamais directement sur le décor. Contraste du texte : 7:1 minimum. */
+
+:root {
+  --sky-top: #8fd3ff;
+  --sky-bottom: #ffc2e6;
+  --panel: #fffaf0;
+  --ink: #2a1650;
+  --muted: #5a4580;
+  --border: #3b1d6e;
+  --shadow: #ff7ac1;
+  --pink: #ff7ac1;
+  --mint: #7ef0c9;
+  --yellow: #ffd447;
+  --on-color: #1a0b36;      /* texte sur les boutons colorés */
+  --lcd: #1b0f3b;
+  --lcd-text: #9dffe0;
+  --disabled-bg: #e9e1f5;
+  --disabled-text: #4a3870;
+  --bubble: #e6f6ff;
+  --deco: #ffffff;
+  --link: #6a1fb5;
+  --focus: #1a0b36;
+  --focus-ring: #ffffff;
+  --page-text: #1a0b36;     /* texte posé directement sur le ciel */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --sky-top: #1a1038;
+    --sky-bottom: #4b2380;
+    --panel: #241347;
+    --ink: #f6eeff;
+    --muted: #cdbbf0;
+    --border: #b693ff;
+    --shadow: #ff8fcd;
+    --pink: #ff8fcd;
+    --mint: #8af5d2;
+    --lcd: #10082a;
+    --disabled-bg: #3a2763;
+    --disabled-text: #cdbbf0;
+    --bubble: #2e1a59;
+    --deco: #ffe9a8;
+    --link: #ffb3e1;
+    --focus: #ffffff;
+    --focus-ring: #1a0b36;
+    --page-text: #f6eeff;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --shadow: var(--border);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 100%; /* respecte la taille de texte choisie dans le navigateur */
+}
+
 body {
-  font-family: system-ui, sans-serif;
-  display: flex;
-  justify-content: center;
   margin: 0;
-  padding: 2rem 1rem;
+  min-height: 100vh;
+  color: var(--page-text);
+  font-family: Verdana, Tahoma, "Segoe UI", system-ui, sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  background-color: var(--sky-bottom);
+  background-image:
+    radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.55) 0 2px, transparent 3px),
+    radial-gradient(circle at 70% 40%, rgba(255, 255, 255, 0.45) 0 2px, transparent 3px),
+    linear-gradient(180deg, var(--sky-top), var(--sky-bottom));
+  background-size: 90px 90px, 130px 130px, 100% 100%;
+  background-attachment: fixed;
 }
 
 main {
+  position: relative;
+  z-index: 1;
+  max-width: 38rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+h1,
+h2 {
+  font-family: "Trebuchet MS", "Comic Sans MS", Verdana, sans-serif;
+  line-height: 1.2;
+}
+
+/* ---------- Liens, focus ---------- */
+
+a {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+:focus-visible {
+  outline: 4px solid var(--focus);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 7px var(--focus-ring);
+}
+
+.skip-link {
+  position: absolute;
+  left: 0.5rem;
+  top: -5rem;
+  z-index: 10;
+  padding: 0.6rem 1rem;
+  background: var(--panel);
+  color: var(--ink);
+  border: 3px solid var(--border);
+  border-radius: 0.5rem;
+  font-weight: 700;
+}
+
+.skip-link:focus {
+  top: 0.5rem;
+}
+
+/* ---------- Décor ---------- */
+
+.sky {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.deco {
+  position: absolute;
+  color: var(--deco);
+  font-size: 2rem;
+  opacity: 0.85;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+}
+
+.deco-1 { top: 8%;  left: 6%;  font-size: 2.2rem; }
+.deco-2 { top: 22%; right: 7%; font-size: 2.6rem; color: #ff7ac1; }
+.deco-3 { top: 48%; left: 4%;  font-size: 2.4rem; }
+.deco-4 { top: 66%; right: 5%; font-size: 2rem; }
+.deco-5 { top: 82%; left: 9%;  font-size: 2.2rem; color: #7ef0c9; }
+.deco-6 { top: 38%; right: 3%; font-size: 1.6rem; }
+
+/* ---------- Bannière ---------- */
+
+.banner {
+  text-align: center;
+  margin-bottom: 1.25rem;
+}
+
+.kaomoji {
+  margin: 0 0 0.25rem;
+  font-size: 0.95rem;
+  letter-spacing: 0.05em;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2.2rem, 9vw, 3.2rem);
+  /* Texte posé sur le ciel : couleur très contrastée, avec une ombre rose décorative */
+  color: var(--page-text);
+  text-shadow: 3px 3px 0 var(--shadow);
+}
+
+.tagline {
+  margin: 0.5rem auto 0;
+  max-width: 30rem;
+  padding: 0.5rem 1rem;
+  background: var(--panel);
+  color: var(--ink);
+  border: 3px solid var(--border);
+  border-radius: 1rem;
+  box-shadow: 4px 4px 0 var(--shadow);
+}
+
+/* ---------- Fenêtre façon vieux Windows ---------- */
+
+.window {
+  background: var(--panel);
+  color: var(--ink);
+  border: 4px solid var(--border);
+  border-radius: 0.75rem;
+  box-shadow: 8px 8px 0 var(--shadow);
+  overflow: hidden;
+}
+
+.window-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.4rem 0.75rem;
+  background: var(--yellow);
+  color: var(--on-color);
+  border-bottom: 4px solid var(--border);
+}
+
+.window-bar h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+}
+
+.window-dots {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.window-dots i {
+  display: block;
+  width: 0.9rem;
+  height: 0.9rem;
+  border: 2px solid var(--on-color);
+  border-radius: 50%;
+  background: var(--pink);
+}
+
+.window-dots i:nth-child(2) { background: var(--mint); }
+.window-dots i:nth-child(3) { background: #ffffff; }
+
+.window-body {
+  padding: 1rem;
   text-align: center;
 }
 
+.scene {
+  display: block;
+  width: 100%;
+  max-width: 22rem;
+  height: auto;
+  margin: 0 auto 1rem;
+  border: 3px solid var(--border);
+  border-radius: 0.5rem;
+}
+
+/* ---------- Timer (écran LCD) ---------- */
+
+.lcd-label {
+  margin: 0 0 0.35rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.85rem;
+}
+
+.lcd {
+  background: var(--lcd);
+  border: 4px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem 0.5rem;
+  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.08);
+}
+
 #timer-display {
-  font-size: 4rem;
+  margin: 0;
+  color: var(--lcd-text);
+  font-family: "Courier New", ui-monospace, Consolas, monospace;
+  font-weight: 700;
+  font-size: clamp(3.5rem, 18vw, 5.5rem);
+  line-height: 1.1;
   font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 10px rgba(157, 255, 224, 0.55);
+}
+
+.equalizer {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 0.35rem;
+  height: 1.6rem;
+  margin-top: 0.25rem;
+}
+
+.equalizer i {
+  display: block;
+  width: 0.55rem;
+  height: 0.5rem;
+  background: var(--pink);
+  border-radius: 2px;
+}
+
+.equalizer i:nth-child(even) {
+  background: var(--mint);
+}
+
+/* ---------- Boutons ---------- */
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
   margin: 1rem 0;
 }
 
-button {
-  font-size: 1rem;
-  padding: 0.6rem 1.2rem;
+.btn {
+  min-height: 3rem;
+  padding: 0.6rem 1.25rem;
+  font: inherit;
+  font-weight: 700;
+  color: var(--on-color);
+  background: var(--pink);
+  border: 3px solid var(--border);
+  border-radius: 999px;
+  box-shadow: 0 5px 0 var(--border);
   cursor: pointer;
+}
+
+.btn-mint {
+  background: var(--mint);
+}
+
+.btn-pink {
+  background: var(--pink);
+}
+
+.btn:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 var(--border);
+}
+
+/* Bouton inactif : lisible, et différent par la bordure pointillée, pas seulement par la couleur */
+.btn:disabled {
+  color: var(--disabled-text);
+  background: var(--disabled-bg);
+  border-style: dashed;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.btn[hidden] {
+  display: none;
+}
+
+.btn-small {
+  min-height: 2.75rem;
+  padding: 0.4rem 1rem;
+  font-size: 0.95rem;
+  background: var(--yellow);
+}
+
+/* ---------- Messages ---------- */
+
+.bubble {
+  position: relative;
+  margin: 0.75rem auto 0;
+  padding: 0.6rem 1rem;
+  max-width: 28rem;
+  background: var(--bubble);
+  color: var(--ink);
+  border: 3px solid var(--border);
+  border-radius: 1rem;
+  font-weight: 700;
+}
+
+.bubble:empty {
+  display: none;
+}
+
+/* ---------- « Ce site contient » ---------- */
+
+.features {
+  margin-top: 1.75rem;
+  padding: 0.5rem 1.25rem 1rem;
+  background: var(--panel);
+  color: var(--ink);
+  border: 4px dashed var(--border);
+  border-radius: 0.75rem;
+}
+
+.features h2 {
+  margin: 0.5rem 0;
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+.features ul {
+  margin: 0;
+  padding-left: 1.4rem;
+}
+
+.features li::marker {
+  content: "✓  ";
+  color: var(--link);
+  font-weight: 700;
+}
+
+/* ---------- Pied de page ---------- */
+
+footer {
+  margin-top: 1.75rem;
+  text-align: center;
+}
+
+footer p {
+  margin: 0 auto 0.75rem;
+  display: inline-block;
+  padding: 0.3rem 1rem;
+  background: var(--panel);
+  color: var(--ink);
+  border: 3px solid var(--border);
+  border-radius: 999px;
+}
+
+/* ---------- Animations ----------
+   Elles ne se lancent que si le système n'a pas demandé de réduire les animations,
+   et le bouton « Animations » du pied de page permet de les couper (classe .calm sur <body>). */
+
+@media (prefers-reduced-motion: no-preference) {
+  body:not(.calm) .deco {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  body:not(.calm) .deco:nth-child(even) {
+    animation-duration: 8s;
+    animation-delay: -3s;
+  }
+
+  body:not(.calm) h1 {
+    animation: bob 4s ease-in-out infinite;
+  }
+
+  body:not(.calm) .steam {
+    animation: steam 3s ease-in-out infinite;
+  }
+
+  body:not(.calm) .steam-2 {
+    animation-delay: -1.5s;
+  }
+
+  /* L'égaliseur ne bouge que pendant que le timer tourne */
+  body.is-running:not(.calm) .equalizer i {
+    animation: bounce 0.9s ease-in-out infinite;
+  }
+
+  body.is-running:not(.calm) .equalizer i:nth-child(2) { animation-delay: -0.2s; }
+  body.is-running:not(.calm) .equalizer i:nth-child(3) { animation-delay: -0.45s; }
+  body.is-running:not(.calm) .equalizer i:nth-child(4) { animation-delay: -0.1s; }
+  body.is-running:not(.calm) .equalizer i:nth-child(5) { animation-delay: -0.65s; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50% { transform: translateY(-14px) rotate(6deg); }
+}
+
+@keyframes bob {
+  0%, 100% { transform: rotate(-1.5deg); }
+  50% { transform: rotate(1.5deg); }
+}
+
+@keyframes steam {
+  0%, 100% { opacity: 0.2; transform: translateY(2px); }
+  50% { opacity: 0.9; transform: translateY(-3px); }
+}
+
+@keyframes bounce {
+  0%, 100% { height: 0.4rem; }
+  50% { height: 1.5rem; }
+}
+
+/* ---------- Petits écrans, mode contraste forcé, impression ---------- */
+
+@media (max-width: 30rem) {
+  main {
+    padding-top: 1rem;
+  }
+
+  .window {
+    box-shadow: 5px 5px 0 var(--shadow);
+  }
+
+  .btn {
+    width: 100%;
+  }
+
+  .deco {
+    font-size: 1.4rem !important;
+    opacity: 0.6;
+  }
+}
+
+@media (forced-colors: active) {
+  .window,
+  .lcd,
+  .btn,
+  .bubble,
+  .features,
+  .tagline {
+    border-color: CanvasText;
+  }
+
+  .sky {
+    display: none;
+  }
+}
+
+@media print {
+  .sky,
+  .skip-link,
+  #motion-toggle {
+    display: none;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+  }
 }

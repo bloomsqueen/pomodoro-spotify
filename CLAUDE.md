@@ -38,6 +38,13 @@ Le propriétaire du dépôt construit sa **première application** et découvre 
 
 Les fichiers `spotify.js` et `timer.js` contiennent des fonctions à implémenter (marquées TODO).
 
+## Design
+- Ambiance : skyblog des années 2000 et lofi. Thème jour (ciel bleu et rose) et thème nuit (mode sombre du système, violet).
+- Le texte est toujours posé sur un fond uni (panneau, bouton, écran LCD), jamais directement sur le décor. Contraste du texte : 7:1 minimum, en clair et en sombre.
+- Les décors (étoiles, notes, cœurs, kaomoji) sont en `aria-hidden`. Aucune image externe, aucune police externe.
+- Les animations respectent `prefers-reduced-motion` et se coupent avec le bouton « Animations » (classe `calm` sur `<body>`). L'égaliseur ne bouge que pendant que le timer tourne (classe `is-running`).
+- Boutons inactifs : bordure pointillée, pas seulement une couleur différente.
+
 ## Contraintes Spotify
 - Contrôler la lecture via l'API exige un compte **Spotify Premium**.
 - Il faut une app créée sur le Spotify Developer Dashboard (Client ID).
