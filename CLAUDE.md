@@ -20,6 +20,10 @@ Le propriétaire du dépôt construit sa **première application** et découvre 
 - Type d'application : **appli web sans backend**.
 - Déroulé du MVP : un seul timer fixe de 45 minutes. La musique démarre automatiquement avec le timer. Pas de phase de pause ni de reprise de la musique : pour recommencer, l'utilisateur relance un timer.
 - Playlist : pas de choix de playlist dans le MVP. L'appli reprend la lecture en cours dans l'appli Spotify de l'utilisateur.
+- Si Spotify refuse de lancer la musique (pas d'appareil actif, pas Premium, jeton refusé…), le timer ne démarre pas et un message explique pourquoi.
+- Si la pause échoue à 0:00, le message le dit clairement et demande de mettre Spotify en pause à la main.
+- Jeton d'accès (valable 1 heure) : renouvelé automatiquement avec le jeton de rafraîchissement. Au clic sur « Démarrer », s'il ne tiendra pas jusqu'à la fin du timer, il est renouvelé tout de suite, pour que la pause de 0:00 ne dépende pas d'un appel réseau fait au dernier moment. Si Spotify refuse le renouvellement (`invalid_grant`), l'utilisateur doit se reconnecter.
+- Messages à l'utilisateur : tutoiement, comme sur la page.
 - Critère de réussite : « je lance un timer de 45 min, et à 0:00 ma musique Spotify se met en pause toute seule ».
 
 - Stack : **HTML, CSS et JavaScript simples** (modules ES), sans framework, sans outil de build, sans dépendance.
@@ -27,6 +31,12 @@ Le propriétaire du dépôt construit sa **première application** et découvre 
 ## Décisions ouvertes
 À trancher avec le propriétaire avant d'écrire du code. Mettre à jour cette liste au fur et à mesure.
 - Aucune pour l'instant.
+
+## Prochaines étapes (dans cet ordre)
+1. ~~Retours sur le design de l'accueil~~ : validé par le propriétaire.
+2. ~~Remettre la durée à 45 minutes~~ : fait.
+3. ~~Renouvellement du jeton d'accès~~ : fait (option A choisie par le propriétaire).
+4. **Rappeler au propriétaire** : écrire ensemble le PRD de la suite du projet. Pour chaque fonctionnalité, noter l'**output attendu** (ce que l'utilisateur voit ou obtient quand elle fonctionne).
 
 ## Structure
 - `index.html` : la page (connexion, affichage du timer, bouton Démarrer, zone de messages).
@@ -36,7 +46,16 @@ Le propriétaire du dépôt construit sa **première application** et découvre 
 - `js/timer.js` : le compte à rebours, indépendant de Spotify.
 - `js/app.js` : point d'entrée, relie la page, le timer et Spotify.
 
-Les fichiers `spotify.js` et `timer.js` contiennent des fonctions à implémenter (marquées TODO).
+
+## Design
+- Ambiance : skyblog des années 2000 et lofi. Thème jour (ciel bleu et rose) et thème nuit (mode sombre du système, violet).
+- Le texte est toujours posé sur un fond uni (panneau, bouton, écran LCD), jamais directement sur le décor. Contraste du texte : 7:1 minimum, en clair et en sombre.
+- Page volontairement très simple : un titre, une fenêtre « pomodoro.exe » avec le timer et deux boutons, un pied de page. Pas de texte explicatif en plus (le propriétaire l'a retiré).
+- Boutons : rectangles en relief (arêtes claires en haut à gauche, sombres en bas à droite), pas de bords arrondis ni de pilules.
+- Police : Michroma (style Eurostile / Handel Gothic) pour le titre, les étiquettes et les boutons, auto-hébergée dans `fonts/` (licence OFL, fichier de licence à garder). Texte courant en Verdana/Tahoma. Chiffres du timer en Courier New. Aucune police ni image chargée depuis un site externe.
+- Les décors (étoiles, notes, cœurs, kaomoji) sont en `aria-hidden`. Les « stickers » autour du timer ne recouvrent jamais les chiffres.
+- Les animations respectent `prefers-reduced-motion` et se coupent avec le bouton « Animations » (classe `calm` sur `<body>`). L'égaliseur ne bouge que pendant que le timer tourne (classe `is-running`).
+- Boutons inactifs : bordure pointillée, pas seulement une couleur différente.
 
 ## Contraintes Spotify
 - Contrôler la lecture via l'API exige un compte **Spotify Premium**.
@@ -46,7 +65,7 @@ Les fichiers `spotify.js` et `timer.js` contiennent des fonctions à implémente
 
 ## Sécurité
 - Aucun secret dans le dépôt. L'appli n'en a pas besoin : le Client ID est public par conception (PKCE) et vit dans `js/config.js`. Il n'y a pas de Client Secret, et il ne faut jamais en ajouter.
-- Ne committe jamais de jeton d'accès Spotify. Le navigateur peut les garder en mémoire de session, jamais dans un fichier du dépôt.
+- Ne committe jamais de jeton (d'accès ou de rafraîchissement) Spotify. Ils restent dans `sessionStorage` : ils disparaissent à la fermeture de l'onglet, et ne sont jamais écrits dans un fichier du dépôt.
 - `.env` reste dans `.gitignore` par précaution, au cas où un fichier de ce type serait ajouté un jour.
 
 ## Commandes

@@ -3,19 +3,67 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Un timer pomodoro de 45 minutes qui met ta musique Spotify en pause tout seul.">
   <title>Pomodoro Spotify</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <main>
-    <h1>Pomodoro Spotify</h1>
+  <a class="skip-link" href="#contenu">Aller au contenu</a>
 
-    <button id="connect-button">Se connecter à Spotify</button>
+  <!-- Les petits décors (étoiles, cœurs, notes) sont masqués aux lecteurs d'écran avec aria-hidden. -->
+  <div class="sky" aria-hidden="true">
+    <span class="deco deco-1">★</span>
+    <span class="deco deco-2">♡</span>
+    <span class="deco deco-3">♪</span>
+    <span class="deco deco-4">✦</span>
+    <span class="deco deco-5">♪</span>
+    <span class="deco deco-6">★</span>
+  </div>
 
-    <p id="timer-display">45:00</p>
-    <button id="start-button">Démarrer (45 min)</button>
+  <main id="contenu">
+    <header class="banner">
+      <p class="kaomoji" aria-hidden="true">˚ʚ♡ɞ˚ &nbsp; ✧ bienvenue ✧ &nbsp; ˚ʚ♡ɞ˚</p>
+      <h1>Pomodoro Spotify</h1>
+    </header>
 
-    <p id="message" role="status"></p>
+    <!-- Une fenêtre façon vieux Windows : le décor est en CSS, le contenu reste du vrai texte. -->
+    <section class="window" aria-labelledby="titre-fenetre">
+      <div class="window-bar">
+        <h2 id="titre-fenetre">pomodoro.exe</h2>
+        <span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+      </div>
+
+      <div class="window-body">
+        <p class="lcd-label" id="etiquette-timer">Temps restant</p>
+
+        <div class="timer-frame">
+          <div class="lcd">
+            <p id="timer-display" role="timer" aria-labelledby="etiquette-timer">45:00</p>
+            <div class="equalizer" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+          </div>
+          <!-- Petits « stickers » autour du timer -->
+          <span class="sticker sticker-1" aria-hidden="true">★</span>
+          <span class="sticker sticker-2" aria-hidden="true">♡</span>
+          <span class="sticker sticker-3" aria-hidden="true">♪</span>
+          <span class="sticker sticker-4" aria-hidden="true">✦</span>
+          <span class="sticker sticker-5" aria-hidden="true">♪</span>
+          <span class="sticker sticker-6" aria-hidden="true">✧</span>
+        </div>
+
+        <div class="buttons">
+          <button id="connect-button" type="button" class="btn btn-pink">Se connecter à Spotify</button>
+          <button id="start-button" type="button" class="btn btn-mint" disabled>Démarrer (45 min)</button>
+        </div>
+
+        <p id="message" class="bubble" role="status"></p>
+      </div>
+    </section>
+
+    <footer>
+      <p>Fait avec <span aria-hidden="true">♥</span> pour travailler en musique.</p>
+      <button id="motion-toggle" type="button" class="btn btn-yellow btn-small" aria-pressed="false">Animations : activées</button>
+    </footer>
   </main>
 
   <!-- type="module" permet de découper le JavaScript en plusieurs fichiers -->
