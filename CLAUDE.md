@@ -31,6 +31,11 @@ Le propriétaire du dépôt construit sa **première application** et découvre 
 À trancher avec le propriétaire avant d'écrire du code. Mettre à jour cette liste au fur et à mesure.
 - [ ] Jeton d'accès qui expire : renouvellement automatique avec le jeton de rafraîchissement (recommandé) ou reconnexion manuelle.
 
+## Prochaines étapes (dans cet ordre)
+1. Retours du propriétaire sur le design de l'accueil (en cours).
+2. Remettre la durée à 45 minutes (`TIMER_DURATION_MINUTES` dans `js/config.js`, actuellement 0.1 pour les tests) et trancher le renouvellement du jeton.
+3. **Rappeler au propriétaire**, une fois le design terminé : écrire ensemble le PRD de la suite du projet. Pour chaque fonctionnalité, noter l'**output attendu** (ce que l'utilisateur voit ou obtient quand elle fonctionne).
+
 ## Structure
 - `index.html` : la page (connexion, affichage du timer, bouton Démarrer, zone de messages).
 - `css/style.css` : le style.
