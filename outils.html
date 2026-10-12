@@ -4,198 +4,114 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <meta name="description" content="Comparaison de deux sources de ressources pour le vibe coding : un post sur X (capture d'écran) et le dépôt GitHub awesome-vibecoding.">
+  <meta name="description" content="Comparaison de deux sources de ressources pour le vibe coding : un post sur X et le dépôt GitHub awesome-vibecoding.">
   <title>Comparer deux sources d'outils</title>
   <link rel="stylesheet" href="css/outils.css">
 </head>
 <body>
-  <main>
-    <h1>Deux sources d'outils de vibe coding, comparées</h1>
-    <p class="lead">
-      <span class="tag tag-a">Source A</span> un post sur X, vu en capture d'écran, qui liste 25 ressources.
-      <span class="tag tag-b">Source B</span> le dépôt GitHub
-      <a href="https://github.com/Scap-Mehdi/awesome-vibecoding">awesome-vibecoding</a>, une liste « awesome » datée, avec une version française.
-    </p>
-    <p class="meta">Analyse du 12 octobre 2026. Dépôt lu au commit <code>697b573</code> (9 octobre 2026), fichier <code>README.fr.md</code>.</p>
+  <a class="skip-link" href="#contenu">Aller au contenu</a>
 
-    <h2>À retenir</h2>
-    <ul class="takeaways">
-      <li>
-        <strong>Les deux sources ne se recoupent pas.</strong>
-        La source A parle de design et d'interface (galeries de sites, composants, animations). La source B parle d'outils de développement assisté par IA (assistants de code, tests, déploiement). Aucune des 25 ressources de A n'apparaît nulle part dans le dépôt B.
-      </li>
-      <li>
-        <strong>B se laisse contrôler, A non.</strong>
-        Chaque ligne de B porte une date, une indication d'accès et, dans 50 cas sur 54, un lien vers sa fiche de preuves. Le post A ne donne ni date par entrée, ni prix, ni preuve : ce sont des recommandations d'un auteur.
-      </li>
-      <li>
-        <strong>« Vérifié » demande à être lu de près.</strong>
-        Les vérifications de B datent de 24 jours pour la grande majorité. Elles sont en partie automatisées, 28 lignes sur 54 disent seulement « Vérifier le prix », et le dépôt précise lui-même que ce n'est ni un audit de sécurité ni une promesse de disponibilité.
-      </li>
-    </ul>
+  <main id="contenu">
+    <header>
+      <h1>Deux sources d'outils de vibe coding, comparées</h1>
+      <p class="meta">Analyse du 12 octobre 2026.</p>
+    </header>
 
-    <h2>Comparaison point par point</h2>
-    <div class="table-wrap">
-      <table class="compare">
-        <caption>Ce que chaque source permet de savoir, et de vérifier.</caption>
-        <thead>
-          <tr>
-            <th scope="col">Critère</th>
-            <th scope="col" class="col-a">Source A · post sur X</th>
-            <th scope="col" class="col-b">Source B · dépôt GitHub</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <th scope="row">Nature</th>
-            <td>Capture d'écran d'un post : une liste numérotée de 25 ressources, avec une vidéo de démonstration.</td>
-            <td>Dépôt public versionné. Le README existe en 4 langues (anglais, français, coréen, japonais). Il s'accompagne de données structurées (<code>data/catalog-status.json</code>) et de documents de preuves.</td>
-          </tr>
-          <tr>
-            <th scope="row">Qui est responsable</th>
-            <td>Un compte individuel à badge bleu. Son nom est illisible sur la capture. Aucune méthode de sélection n'est exposée.</td>
-            <td>Le dépôt <code>Scap-Mehdi/awesome-vibecoding</code>. Une politique de curation publique fixe cinq critères d'admission. Les mises à jour hebdomadaires sont faites par un agent (Pi avec Kimi ou Qwen, et Exa Search), avec un mainteneur en contrôle.</td>
-          </tr>
-          <tr>
-            <th scope="row">Sujet</th>
-            <td>Design et interface : galeries de sites, bibliothèques de composants, animations, effets CSS, prompts de design.</td>
-            <td>Développement assisté par IA : code, prototypage d'applications, contexte et MCP, tests et revue, déploiement, espaces de travail pour agents. Plus des ressources pour apprendre.</td>
-          </tr>
-          <tr>
-            <th scope="row">Volume</th>
-            <td>25 entrées.</td>
-            <td>54 entrées dans le README principal (43 outils et 11 ressources d'apprentissage), plus un catalogue étendu dans <code>docs/verified-catalog.md</code>.</td>
-          </tr>
-          <tr>
-            <th scope="row">Datation</th>
-            <td>Une seule date, celle du post : autour du 9 octobre (les chiffres sont flous sur la capture). Aucune date par entrée.</td>
-            <td>Une date de vérification par ligne. 51 lignes sur 54 datent du 2026-09-18, les autres du 2026-09-20, 2026-09-23 et 2026-10-04.</td>
-          </tr>
-          <tr>
-            <th scope="row">Preuves</th>
-            <td>Aucune visible. Les descriptions sont celles de l'auteur (« la référence », « les sites qui ont vraiment gagné ») et les chiffres ne sont pas sourcés (par exemple « 600+ prompts »).</td>
-            <td>50 lignes sur 54 renvoient vers une fiche de preuves datée. Les 4 plus récentes (Prbl, Delta, Shep, VDLC) n'ont qu'une date, sans lien de preuve.</td>
-          </tr>
-          <tr>
-            <th scope="row">Accès, prix, licence</th>
-            <td>Non indiqués.</td>
-            <td>Une colonne « Accès / périmètre » pour chaque ligne. Mais 28 lignes sur 54 disent seulement « Vérifier le prix » : le tarif n'a pas été examiné en détail.</td>
-          </tr>
-          <tr>
-            <th scope="row">Ce que « vérifié » veut dire</th>
-            <td>Rien n'est affirmé.</td>
-            <td>L'offre existait et était ouverte aux nouveaux utilisateurs à la date indiquée. Le dépôt dit que ce n'est ni un audit de sécurité ni une promesse de disponibilité, et que les jugements de pertinence faits par le modèle ne sont pas prouvés par les liens cités.</td>
-          </tr>
-          <tr>
-            <th scope="row">Historique</th>
-            <td>Un post unique, sans historique de sélection.</td>
-            <td>Historique git et <code>docs/catalog-history.md</code> pour les entrées retirées. Le nettoyage du 2026-09-18 a réduit la liste principale de 156 à 40 outils, d'après le dépôt.</td>
-          </tr>
-          <tr>
-            <th scope="row">Réutilisation</th>
-            <td>C'est une image : le texte ne se copie pas et les liens ne sont pas cliquables.</td>
-            <td>Texte Markdown sous licence CC0 (domaine public). Les projets listés gardent leurs propres licences.</td>
-          </tr>
-          <tr>
-            <th scope="row">Langue</th>
-            <td>Anglais.</td>
-            <td>Anglais, français, coréen, japonais. Les versions anglaise et française ont le même nombre de lignes (54).</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <section aria-labelledby="sources">
+      <h2 id="sources">Les deux sources</h2>
+      <div class="cards">
+        <article class="card card-a">
+          <h3><span class="tag">Source A</span> Un post sur X</h3>
+          <p>Compte à badge bleu au prénom Himanshu (nom de famille et identifiant illisibles sur la capture). D'après son profil, il est fondateur de Scrollslide.</p>
+          <ul>
+            <li>Une liste de 25 ressources de design et d'interface, sans date par entrée ni preuve.</li>
+            <li>L'entrée n° 1, Scrollslide, semble être le produit de l'auteur.</li>
+          </ul>
+        </article>
 
-    <h2>La source B en chiffres</h2>
-    <div class="table-wrap">
-      <table>
-        <caption>Entrées du README français, par rubrique.</caption>
-        <thead>
-          <tr>
-            <th scope="col">Rubrique</th>
-            <th scope="col" class="num">Entrées</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><th scope="row">Code et édition</th><td class="num">10</td></tr>
-          <tr><th scope="row">Prototypage d'applications et d'interfaces</th><td class="num">6</td></tr>
-          <tr><th scope="row">Contexte, spécifications et intégrations</th><td class="num">8</td></tr>
-          <tr><th scope="row">Tests, revue et sécurité</th><td class="num">7</td></tr>
-          <tr><th scope="row">Déploiement et exécution</th><td class="num">4</td></tr>
-          <tr><th scope="row">Espaces de travail et usage des agents</th><td class="num">8</td></tr>
-          <tr><th scope="row">Apprendre : premier projet</th><td class="num">3</td></tr>
-          <tr><th scope="row">Apprendre : workflows pratiques</th><td class="num">3</td></tr>
-          <tr><th scope="row">Apprendre : concepts et recherche</th><td class="num">5</td></tr>
-        </tbody>
-        <tfoot>
-          <tr><th scope="row">Total</th><td class="num"><strong>54</strong></td></tr>
-        </tfoot>
-      </table>
-    </div>
+        <article class="card card-b">
+          <h3><span class="tag">Source B</span> Un dépôt GitHub</h3>
+          <p><a href="https://github.com/Scap-Mehdi/awesome-vibecoding">Scap-Mehdi/awesome-vibecoding</a>, lu au commit <code>697b573</code> du 9 octobre 2026 (fichier <code>README.fr.md</code>).</p>
+          <ul>
+            <li>54 outils de développement assisté par IA, chacun daté, avec son accès et sa licence.</li>
+            <li>Mis à jour par un agent automatique. 50 entrées sur 54 renvoient à une fiche de preuves.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
 
-    <h2>Le contenu de la source A, retranscrit</h2>
-    <p>La capture est une image, donc je l'ai retranscrite. Elle est floue par endroits : les noms et les descriptions sont lisibles, mais plusieurs adresses ne le sont pas. Elles sont signalées, et je n'en ai fait aucun lien pour ne pas vous envoyer vers un mauvais site.</p>
-    <details>
-      <summary>Voir les 25 entrées</summary>
+    <section aria-labelledby="retenir">
+      <h2 id="retenir">À retenir</h2>
+      <ul class="takeaways">
+        <li><strong>Pas de recoupement :</strong> aucune des 25 ressources de A n'est dans B.</li>
+        <li><strong>B se contrôle, A non :</strong> dates et preuves d'un côté, avis d'un auteur de l'autre.</li>
+        <li><strong>« Vérifié » reste partiel :</strong> revue du 18 septembre, en partie automatisée, prix souvent non examinés.</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="comparaison">
+      <h2 id="comparaison">Comparaison</h2>
       <div class="table-wrap">
-        <table>
-          <caption>Entrées du post, dans l'ordre. « Adresse lue » est ce que je distingue sur la capture.</caption>
+        <table class="compare">
+          <caption class="visually-hidden">Comparaison de la source A (post sur X) et de la source B (dépôt GitHub), critère par critère.</caption>
           <thead>
             <tr>
-              <th scope="col" class="num">N°</th>
-              <th scope="col">Nom</th>
-              <th scope="col">Adresse lue</th>
-              <th scope="col">Ce que dit le post</th>
+              <th scope="col">Critère</th>
+              <th scope="col" class="col-a">Source A · post sur X</th>
+              <th scope="col" class="col-b">Source B · dépôt GitHub</th>
             </tr>
           </thead>
           <tbody>
-            <tr><td class="num">1</td><td>Scrollslide</td><td>scrollslide.co</td><td>600+ prompts primés et code source complet de sites 3D ou pilotés au scroll. 100+ scènes 3D, 200+ dégradés interactifs, 200+ composants. Le prompt se colle dans Claude, Cursor ou Lovable.</td></tr>
-            <tr><td class="num">2</td><td>Minimal Gallery</td><td>minimal.gallery</td><td>Sites haut de gamme sélectionnés, à donner à son agent.</td></tr>
-            <tr><td class="num">3</td><td>Godly</td><td>godly.website</td><td>Sites choisis à la main, avec un vrai savoir-faire.</td></tr>
-            <tr><td class="num">4</td><td>Refero Styles</td><td>styles.refero.design</td><td>2 000+ styles de produits réels, avec leur typographie.</td></tr>
-            <tr><td class="num">5</td><td>Component Gallery</td><td>component.gallery</td><td>Exemples de la façon dont les grands design systems traitent un même élément (le chiffre, 3 600+, est à confirmer).</td></tr>
-            <tr><td class="num">6</td><td>Mobbin</td><td>mobbin.com</td><td>Parcours d'applications réels, tirés de vrais produits.</td></tr>
-            <tr><td class="num">7</td><td>DESIGN.md</td><td class="unsure">à confirmer (designmd.ai ?)</td><td>Design systems en Markdown, lisibles par l'agent.</td></tr>
-            <tr><td class="num">8</td><td class="unsure">VibePrompt (nom à confirmer)</td><td class="unsure">illisible</td><td>Prompts prêts à l'emploi pour tableaux de bord et pages d'accueil.</td></tr>
-            <tr><td class="num">9</td><td>21st.dev</td><td>21st.dev</td><td>Registre de composants branché aux agents via MCP.</td></tr>
-            <tr><td class="num">10</td><td>Kinetics</td><td class="unsure">illisible</td><td>150+ effets de mouvement avec code React et prompts.</td></tr>
-            <tr><td class="num">11</td><td>shadcn/ui</td><td>ui.shadcn.com</td><td>« Toujours la référence » pour une interface propre et réutilisable.</td></tr>
-            <tr><td class="num">12</td><td>Aceternity UI</td><td>ui.aceternity.com</td><td>200+ composants React/Tailwind animés.</td></tr>
-            <tr><td class="num">13</td><td>Magic UI</td><td>magicui.design</td><td>Composants soignés pour applications web modernes.</td></tr>
-            <tr><td class="num">14</td><td>Motion Primitives</td><td>motion-primitives.com</td><td>Composants d'animation et d'interaction prêts à l'emploi.</td></tr>
-            <tr><td class="num">15</td><td>Uiverse</td><td>uiverse.io</td><td>Éléments d'interface et composants interactifs créés par la communauté.</td></tr>
-            <tr><td class="num">16</td><td>Shadcnblocks</td><td>shadcnblocks.com</td><td>Des blocs complets, pas seulement des boutons.</td></tr>
-            <tr><td class="num">17</td><td>mapcn</td><td>mapcn.dev</td><td>Composants de carte : marqueurs, itinéraires, popups.</td></tr>
-            <tr><td class="num">18</td><td>Awwwards</td><td>awwwards.com</td><td>« Les sites qui ont vraiment gagné. »</td></tr>
-            <tr><td class="num">19</td><td>Liquid Glass</td><td class="unsure">illisible</td><td>Composants et effets de réfraction façon verre.</td></tr>
-            <tr><td class="num">20</td><td>CSS Text Effects</td><td>text-effects.colorion.co</td><td>Animations et effets CSS créatifs pour le texte.</td></tr>
-            <tr><td class="num">21</td><td>Circle Loaders</td><td class="unsure">illisible</td><td>Animations de chargement créatives.</td></tr>
-            <tr><td class="num">22</td><td>Gradient Buttons</td><td>gradientbuttons.colorion.co</td><td>Styles et effets de boutons dégradés.</td></tr>
-            <tr><td class="num">23</td><td class="unsure">Shadertoy (nom à confirmer)</td><td class="unsure">illisible</td><td>Shaders à étudier et à remixer.</td></tr>
-            <tr><td class="num">24</td><td>3D icons</td><td class="unsure">illisible</td><td>Bibliothèque d'icônes 3D gratuites pour interfaces modernes.</td></tr>
-            <tr><td class="num">25</td><td>Anime.js</td><td>animejs.com</td><td>Bibliothèque JavaScript légère d'animation pour le web.</td></tr>
+            <tr>
+              <th scope="row">Format</th>
+              <td>Capture d'écran</td>
+              <td>Texte Markdown, licence CC0</td>
+            </tr>
+            <tr>
+              <th scope="row">Sujet</th>
+              <td>Design et interface</td>
+              <td>Outils de développement par IA</td>
+            </tr>
+            <tr>
+              <th scope="row">Taille</th>
+              <td>25 entrées</td>
+              <td>54 entrées</td>
+            </tr>
+            <tr>
+              <th scope="row">Dates</th>
+              <td>Celle du post seulement</td>
+              <td>Une par entrée (18 sept. au 4 oct.)</td>
+            </tr>
+            <tr>
+              <th scope="row">Preuves</th>
+              <td>Aucune</td>
+              <td>50 entrées sur 54</td>
+            </tr>
+            <tr>
+              <th scope="row">Accès et prix</th>
+              <td>Non indiqués</td>
+              <td>Indiqués, souvent « Vérifier le prix » (28 sur 54)</td>
+            </tr>
+            <tr>
+              <th scope="row">Langues</th>
+              <td>Anglais</td>
+              <td>Anglais, français, coréen, japonais</td>
+            </tr>
           </tbody>
         </table>
       </div>
-    </details>
+    </section>
 
-    <h2>Et pour ce projet ?</h2>
-    <p>Cette section est mon avis, pas le contenu des sources.</p>
-    <ul class="plain">
-      <li>Le MVP (connexion Spotify, timer de 45 minutes, pause) n'a besoin d'aucune de ces listes : la documentation officielle de Spotify suffit.</li>
-      <li>Pour soigner l'interface plus tard, la source A est la plus proche du besoin. Mais le projet est en HTML, CSS et JavaScript simples, sans framework. D'après le post ou leur nom, plusieurs entrées sont des bibliothèques React ou Tailwind (shadcn/ui, Aceternity UI, Shadcnblocks, Kinetics) et ne conviennent pas telles quelles. Anime.js (JavaScript) et les entrées purement CSS (Uiverse, CSS Text Effects, Gradient Buttons, Circle Loaders) ont plus de chances de convenir. À vérifier sur chaque site avant de les utiliser.</li>
-      <li>La source B sert à choisir des outils d'aide au développement, par exemple pour tester ou relire le code. Lisez la colonne « Accès / périmètre » avant de vous y fier.</li>
-    </ul>
-
-    <h2>Limites de cette comparaison</h2>
-    <ul class="plain">
-      <li>Source A : la capture est en basse résolution. Les compteurs (vues, likes), l'année et l'heure du post sont illisibles et ne sont pas repris.</li>
-      <li>Source B : j'ai lu le dépôt tel qu'il est (README, catalogue, registre JSON, politique de curation) et calculé les chiffres à partir du <code>README.fr.md</code>. Je n'ai ouvert ni les fiches de preuves ni les sites des outils. Je rapporte donc ce que le dépôt affirme, sans l'avoir revérifié.</li>
-      <li>Les adresses de la source A ne sont pas cliquables, volontairement (voir plus haut).</li>
-    </ul>
+    <section aria-labelledby="limites">
+      <h2 id="limites">Limites de cette comparaison</h2>
+      <ul class="plain">
+        <li>Source A : la capture est en basse résolution. Les compteurs (vues, likes), l'année et l'heure du post sont illisibles et ne sont pas repris.</li>
+        <li>Source B : j'ai lu le dépôt tel qu'il est (README, catalogue, registre JSON, politique de curation) et calculé les chiffres à partir du <code>README.fr.md</code>. Je n'ai ouvert ni les fiches de preuves ni les sites des outils. Je rapporte donc ce que le dépôt affirme, sans l'avoir revérifié.</li>
+      </ul>
+    </section>
 
     <footer>
       Sources : capture d'un post sur X ; <a href="https://github.com/Scap-Mehdi/awesome-vibecoding/blob/main/README.fr.md">README.fr.md</a> et <a href="https://github.com/Scap-Mehdi/awesome-vibecoding/blob/main/docs/curation-policy.md">politique de curation</a> du dépôt awesome-vibecoding.
-      <br><a href="index.html">Retour au timer</a>
     </footer>
   </main>
 </body>

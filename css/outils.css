@@ -1,26 +1,33 @@
+/* Couleurs : tous les textes ont un contraste d'au moins 7:1 (niveau AAA). */
 :root {
-  --bg: #fafaf8;
-  --surface: #ffffff;
-  --text: #1c1c1a;
-  --muted: #5f5f5a;
-  --border: #deded8;
-  --accent-a: #b4531a;
-  --accent-b: #1b6b5a;
-  --warn-bg: #fff4d6;
-  --warn-text: #5a4300;
+  --bg: #ffffff;
+  --surface: #f4f4f1;
+  --text: #16161a;
+  --muted: #44444c;
+  --border: #6b6b72;
+  --accent-a: #8a3b00;
+  --accent-b: #0b5a47;
+  --link: #0a4fa3;
+  --focus: #0a4fa3;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #151514;
-    --surface: #1e1e1c;
-    --text: #ecebe6;
-    --muted: #a3a29b;
-    --border: #3a3a36;
-    --accent-a: #ee9a63;
-    --accent-b: #5fc2a8;
-    --warn-bg: #3b3115;
-    --warn-text: #f2deb0;
+  :root {
+    --bg: #121214;
+    --surface: #1c1c20;
+    --text: #f3f3f5;
+    --muted: #c9c9d0;
+    --border: #8d8d96;
+    --accent-a: #ffb98a;
+    --accent-b: #72e3c4;
+    --link: #8ec1ff;
+    --focus: #8ec1ff;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --border: currentColor;
   }
 }
 
@@ -28,176 +35,279 @@
   box-sizing: border-box;
 }
 
+html {
+  /* Respecte la taille de texte choisie dans le navigateur */
+  font-size: 100%;
+  scroll-behavior: auto;
+}
+
 body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: system-ui, sans-serif;
-  line-height: 1.55;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 1.125rem;
+  line-height: 1.65;
 }
 
 main {
-  max-width: 62rem;
+  max-width: 60rem;
   margin: 0 auto;
   padding: 2rem 1rem 4rem;
 }
 
 h1 {
-  font-size: 1.9rem;
-  line-height: 1.2;
+  font-size: 2rem;
+  line-height: 1.25;
   margin: 0 0 0.5rem;
 }
 
 h2 {
-  font-size: 1.3rem;
-  margin: 2.5rem 0 0.75rem;
+  font-size: 1.5rem;
+  line-height: 1.3;
+  margin: 2.75rem 0 1rem;
 }
 
+h3 {
+  font-size: 1.2rem;
+  line-height: 1.35;
+  margin: 0 0 0.5rem;
+}
+
+p,
+li {
+  max-width: 70ch;
+}
+
+/* Les liens sont toujours soulignés : la couleur seule ne suffit pas */
 a {
-  color: inherit;
-  text-underline-offset: 0.15em;
+  color: var(--link);
+  text-decoration: underline;
+  text-decoration-thickness: 0.1em;
+  text-underline-offset: 0.2em;
 }
 
-.lead {
-  color: var(--muted);
-  max-width: 46rem;
+a:hover {
+  text-decoration-thickness: 0.2em;
+}
+
+/* Focus clavier bien visible */
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+code {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 0.95em;
+  background: var(--surface);
+  padding: 0.05em 0.3em;
+  border-radius: 0.25rem;
 }
 
 .meta {
   color: var(--muted);
-  font-size: 0.9rem;
+  margin: 0;
 }
 
-.note {
-  background: var(--warn-bg);
-  color: var(--warn-text);
-  border-radius: 0.5rem;
-  padding: 0.75rem 1rem;
-  margin: 1rem 0;
+/* Lien d'évitement : visible seulement quand on arrive dessus au clavier */
+.skip-link {
+  position: absolute;
+  left: 0.5rem;
+  top: -4rem;
+  z-index: 10;
+  padding: 0.6rem 1rem;
+  background: var(--bg);
+  color: var(--text);
+  border: 2px solid var(--text);
+  border-radius: 0.25rem;
 }
 
-.takeaways {
-  display: grid;
-  gap: 0.75rem;
+.skip-link:focus {
+  top: 0.5rem;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
   padding: 0;
-  list-style: none;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-.takeaways li {
+/* Cartes des deux sources */
+.cards {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+}
+
+.card {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
+  border-top-width: 6px;
   border-radius: 0.5rem;
-  padding: 0.75rem 1rem;
+  padding: 1rem 1.25rem;
 }
 
+.card p {
+  margin: 0 0 0.75rem;
+}
+
+.card ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.card-a {
+  border-top-color: var(--accent-a);
+}
+
+.card-b {
+  border-top-color: var(--accent-b);
+}
+
+/* Le texte « Source A / B » porte l'information, pas la couleur */
 .tag {
   display: inline-block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.05rem 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 0.05rem 0.6rem;
+  margin-right: 0.35rem;
+  border: 2px solid currentColor;
   border-radius: 99px;
-  border: 1px solid currentColor;
   white-space: nowrap;
 }
 
-.tag-a {
+.card-a .tag {
   color: var(--accent-a);
 }
 
-.tag-b {
+.card-b .tag {
   color: var(--accent-b);
 }
 
+.takeaways {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.takeaways li {
+  margin-bottom: 0.5rem;
+}
+
+/* Tableau */
 .table-wrap {
   overflow-x: auto;
+  border: 2px solid var(--border);
+  border-radius: 0.5rem;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  background: var(--surface);
-  font-size: 0.95rem;
-}
-
-caption {
-  text-align: left;
-  color: var(--muted);
-  padding-bottom: 0.5rem;
+  font-size: 1rem;
 }
 
 th,
 td {
   text-align: left;
   vertical-align: top;
-  padding: 0.6rem 0.75rem;
-  border: 1px solid var(--border);
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+tbody tr:last-child th,
+tbody tr:last-child td {
+  border-bottom: 0;
 }
 
 thead th {
-  position: sticky;
-  top: 0;
   background: var(--surface);
+  border-bottom: 4px solid var(--border);
 }
 
 thead th.col-a {
-  border-bottom: 3px solid var(--accent-a);
+  border-bottom-color: var(--accent-a);
 }
 
 thead th.col-b {
-  border-bottom: 3px solid var(--accent-b);
+  border-bottom-color: var(--accent-b);
 }
 
 tbody th {
-  font-weight: 600;
-}
-
-.compare tbody th {
-  width: 11rem;
-}
-
-td.num,
-th.num {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-details {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 0.5rem;
-  padding: 0.5rem 1rem;
-  margin: 0.75rem 0;
-}
-
-summary {
-  cursor: pointer;
-  font-weight: 600;
-  padding: 0.25rem 0;
-}
-
-.unsure {
-  color: var(--muted);
-  font-style: italic;
+  width: 9rem;
+  font-weight: 700;
 }
 
 ul.plain {
-  padding-left: 1.2rem;
+  padding-left: 1.25rem;
 }
 
 footer {
   margin-top: 3rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--border);
+  border-top: 2px solid var(--border);
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 1rem;
+}
+
+footer a {
+  color: var(--link);
 }
 
 @media (max-width: 40rem) {
-  main {
-    padding-top: 1.25rem;
+  body {
+    font-size: 1.0625rem;
   }
 
-  .compare tbody th {
+  h1 {
+    font-size: 1.65rem;
+  }
+
+  tbody th {
     width: auto;
+  }
+
+  th,
+  td {
+    padding: 0.6rem 0.5rem;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* Aucune animation dans cette page ; on le garantit pour les futurs ajouts */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Mode contraste forcé de Windows */
+@media (forced-colors: active) {
+  .card,
+  .table-wrap {
+    border-color: CanvasText;
+  }
+
+  a {
+    color: LinkText;
+  }
+}
+
+@media print {
+  body {
+    font-size: 12pt;
+  }
+
+  .skip-link {
+    display: none;
   }
 }
