@@ -49,7 +49,10 @@ Pas encore fait : le renouvellement automatique du jeton d'accès (voir « Déci
 ## Design
 - Ambiance : skyblog des années 2000 et lofi. Thème jour (ciel bleu et rose) et thème nuit (mode sombre du système, violet).
 - Le texte est toujours posé sur un fond uni (panneau, bouton, écran LCD), jamais directement sur le décor. Contraste du texte : 7:1 minimum, en clair et en sombre.
-- Les décors (étoiles, notes, cœurs, kaomoji) sont en `aria-hidden`. Aucune image externe, aucune police externe.
+- Page volontairement très simple : un titre, une fenêtre « pomodoro.exe » avec le timer et deux boutons, un pied de page. Pas de texte explicatif en plus (le propriétaire l'a retiré).
+- Boutons : rectangles en relief (arêtes claires en haut à gauche, sombres en bas à droite), pas de bords arrondis ni de pilules.
+- Police : Michroma (style Eurostile / Handel Gothic) pour le titre, les étiquettes et les boutons, auto-hébergée dans `fonts/` (licence OFL, fichier de licence à garder). Texte courant en Verdana/Tahoma. Chiffres du timer en Courier New. Aucune police ni image chargée depuis un site externe.
+- Les décors (étoiles, notes, cœurs, kaomoji) sont en `aria-hidden`. Les « stickers » autour du timer ne recouvrent jamais les chiffres.
 - Les animations respectent `prefers-reduced-motion` et se coupent avec le bouton « Animations » (classe `calm` sur `<body>`). L'égaliseur ne bouge que pendant que le timer tourne (classe `is-running`).
 - Boutons inactifs : bordure pointillée, pas seulement une couleur différente.
 

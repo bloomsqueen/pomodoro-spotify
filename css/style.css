@@ -2,7 +2,20 @@
    Règle de lisibilité : le texte est toujours posé sur un fond uni (panneau, bouton, écran LCD),
    jamais directement sur le décor. Contraste du texte : 7:1 minimum. */
 
+/* Police « techno » façon Handel Gothic / Eurostile, auto-hébergée (licence OFL, voir fonts/).
+   Aucune requête vers un site externe. */
+@font-face {
+  font-family: "Michroma";
+  src: url("../fonts/michroma-latin-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
+  --font-display: "Michroma", "Handel Gothic", "Eurostile", "Bank Gothic", "Century Gothic", "Trebuchet MS", sans-serif;
+  --font-body: Verdana, Tahoma, "Segoe UI", system-ui, sans-serif;
+
   --sky-top: #8fd3ff;
   --sky-bottom: #ffc2e6;
   --panel: #fffaf0;
@@ -24,6 +37,12 @@
   --focus: #1a0b36;
   --focus-ring: #ffffff;
   --page-text: #1a0b36;     /* texte posé directement sur le ciel */
+
+  /* Autocollants autour du timer */
+  --sticker-1: #ffd447;
+  --sticker-2: #ff5fb0;
+  --sticker-3: #37c9a0;
+  --sticker-4: #9b6bff;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -67,7 +86,7 @@ body {
   margin: 0;
   min-height: 100vh;
   color: var(--page-text);
-  font-family: Verdana, Tahoma, "Segoe UI", system-ui, sans-serif;
+  font-family: var(--font-body);
   font-size: 1.0625rem;
   line-height: 1.6;
   background-color: var(--sky-bottom);
@@ -89,8 +108,9 @@ main {
 
 h1,
 h2 {
-  font-family: "Trebuchet MS", "Comic Sans MS", Verdana, sans-serif;
-  line-height: 1.2;
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: 1.25;
 }
 
 /* ---------- Liens, focus ---------- */
@@ -116,7 +136,7 @@ a {
   background: var(--panel);
   color: var(--ink);
   border: 3px solid var(--border);
-  border-radius: 0.5rem;
+  border-radius: 2px;
   font-weight: 700;
 }
 
@@ -124,7 +144,7 @@ a {
   top: 0.5rem;
 }
 
-/* ---------- Décor ---------- */
+/* ---------- Décor du fond ---------- */
 
 .sky {
   position: fixed;
@@ -148,7 +168,7 @@ a {
 .deco-5 { top: 82%; left: 9%;  font-size: 2.2rem; color: #7ef0c9; }
 .deco-6 { top: 38%; right: 3%; font-size: 1.6rem; }
 
-/* ---------- Bannière ---------- */
+/* ---------- En-tête ---------- */
 
 .banner {
   text-align: center;
@@ -156,28 +176,18 @@ a {
 }
 
 .kaomoji {
-  margin: 0 0 0.25rem;
+  margin: 0 0 0.5rem;
   font-size: 0.95rem;
   letter-spacing: 0.05em;
 }
 
 h1 {
   margin: 0;
-  font-size: clamp(2.2rem, 9vw, 3.2rem);
-  /* Texte posé sur le ciel : couleur très contrastée, avec une ombre rose décorative */
+  font-size: clamp(1.5rem, 7.5vw, 2.4rem);
+  letter-spacing: 0.04em;
+  /* Texte posé sur le ciel : couleur très contrastée, avec une ombre rose décalée */
   color: var(--page-text);
   text-shadow: 3px 3px 0 var(--shadow);
-}
-
-.tagline {
-  margin: 0.5rem auto 0;
-  max-width: 30rem;
-  padding: 0.5rem 1rem;
-  background: var(--panel);
-  color: var(--ink);
-  border: 3px solid var(--border);
-  border-radius: 1rem;
-  box-shadow: 4px 4px 0 var(--shadow);
 }
 
 /* ---------- Fenêtre façon vieux Windows ---------- */
@@ -186,7 +196,7 @@ h1 {
   background: var(--panel);
   color: var(--ink);
   border: 4px solid var(--border);
-  border-radius: 0.75rem;
+  border-radius: 4px;
   box-shadow: 8px 8px 0 var(--shadow);
   overflow: hidden;
 }
@@ -204,57 +214,53 @@ h1 {
 
 .window-bar h2 {
   margin: 0;
-  font-size: 1.05rem;
-  letter-spacing: 0.04em;
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
 }
 
+/* Trois petits carrés en relief, façon boutons de fenêtre */
 .window-dots {
   display: flex;
-  gap: 0.35rem;
+  gap: 0.3rem;
 }
 
 .window-dots i {
   display: block;
-  width: 0.9rem;
-  height: 0.9rem;
-  border: 2px solid var(--on-color);
-  border-radius: 50%;
+  width: 1rem;
+  height: 1rem;
   background: var(--pink);
+  border: 2px solid;
+  border-color: #ffffff #7a3a66 #7a3a66 #ffffff;
+  outline: 1px solid var(--on-color);
 }
 
-.window-dots i:nth-child(2) { background: var(--mint); }
-.window-dots i:nth-child(3) { background: #ffffff; }
+.window-dots i:nth-child(2) { background: var(--mint); border-color: #ffffff #2a8068 #2a8068 #ffffff; }
+.window-dots i:nth-child(3) { background: #eeeeee; border-color: #ffffff #777777 #777777 #ffffff; }
 
 .window-body {
   padding: 1rem;
   text-align: center;
 }
 
-.scene {
-  display: block;
-  width: 100%;
-  max-width: 22rem;
-  height: auto;
-  margin: 0 auto 1rem;
-  border: 3px solid var(--border);
-  border-radius: 0.5rem;
-}
-
 /* ---------- Timer (écran LCD) ---------- */
 
 .lcd-label {
-  margin: 0 0 0.35rem;
-  font-weight: 700;
+  margin: 0 0 0.6rem;
+  font-family: var(--font-display);
   color: var(--muted);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  font-size: 0.75rem;
+}
+
+.timer-frame {
+  position: relative;
 }
 
 .lcd {
   background: var(--lcd);
   border: 4px solid var(--border);
-  border-radius: 0.75rem;
+  border-radius: 2px;
   padding: 0.75rem 1rem 0.5rem;
   box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.08);
 }
@@ -285,58 +291,100 @@ h1 {
   width: 0.55rem;
   height: 0.5rem;
   background: var(--pink);
-  border-radius: 2px;
+  border-radius: 1px;
 }
 
 .equalizer i:nth-child(even) {
   background: var(--mint);
 }
 
-/* ---------- Boutons ---------- */
+/* Petits autocollants posés autour du timer, comme les icônes du fond.
+   Ils ne recouvrent jamais les chiffres : seulement les coins et les bords du cadre. */
+.sticker {
+  position: absolute;
+  line-height: 1;
+  font-size: 1.7rem;
+  color: var(--sticker-1);
+  text-shadow: 1px 1px 0 var(--border), -1px -1px 0 var(--border), 1px -1px 0 var(--border), -1px 1px 0 var(--border);
+  pointer-events: none;
+}
+
+.sticker-1 { top: -0.9rem;    left: -0.7rem; }
+.sticker-2 { top: -1rem;      right: -0.6rem; color: var(--sticker-2); font-size: 1.9rem; }
+.sticker-3 { bottom: -0.9rem; left: -0.6rem; color: var(--sticker-3); font-size: 1.9rem; }
+.sticker-4 { bottom: -1rem;   right: -0.7rem; color: var(--sticker-4); }
+.sticker-5 { top: 42%;        left: -0.8rem; color: var(--sticker-3); font-size: 1.5rem; }
+.sticker-6 { top: 38%;        right: -0.8rem; color: var(--sticker-1); font-size: 1.5rem; }
+
+/* ---------- Boutons : rectangles en relief, façon badge des années 2000 ---------- */
 
 .buttons {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 0.75rem;
-  margin: 1rem 0;
+  gap: 0.9rem;
+  margin: 1.5rem 0 1rem;
 }
 
 .btn {
+  --btn: var(--pink);
+  --btn-lo: #a3336f;
   min-height: 3rem;
-  padding: 0.6rem 1.25rem;
-  font: inherit;
-  font-weight: 700;
+  padding: 0.6rem 1.1rem;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.4;
   color: var(--on-color);
-  background: var(--pink);
-  border: 3px solid var(--border);
-  border-radius: 999px;
-  box-shadow: 0 5px 0 var(--border);
+  /* reflet clair en haut + couleur unie : le texte reste toujours sur un fond très clair */
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 55%), var(--btn);
+  /* relief : arêtes claires en haut à gauche, sombres en bas à droite */
+  border: 3px solid;
+  border-color: #ffffff var(--btn-lo) var(--btn-lo) #ffffff;
+  border-radius: 2px;
+  box-shadow: 0 0 0 2px var(--border);
   cursor: pointer;
 }
 
-.btn-mint {
-  background: var(--mint);
+.btn-pink {
+  --btn: var(--pink);
+  --btn-lo: #a3336f;
 }
 
-.btn-pink {
-  background: var(--pink);
+.btn-mint {
+  --btn: var(--mint);
+  --btn-lo: #2a8068;
+}
+
+.btn-yellow {
+  --btn: var(--yellow);
+  --btn-lo: #9a7800;
 }
 
 .btn:hover:not(:disabled) {
   filter: brightness(1.06);
 }
 
+/* Bouton enfoncé : le relief s'inverse */
 .btn:active:not(:disabled) {
-  transform: translateY(3px);
-  box-shadow: 0 2px 0 var(--border);
+  border-color: var(--btn-lo) #ffffff #ffffff var(--btn-lo);
+  background: var(--btn);
+  padding-top: calc(0.6rem + 2px);
+  padding-bottom: calc(0.6rem - 2px);
 }
 
-/* Bouton inactif : lisible, et différent par la bordure pointillée, pas seulement par la couleur */
+.btn:focus-visible {
+  outline: 4px solid var(--focus);
+  outline-offset: 4px;
+  box-shadow: 0 0 0 2px var(--border), 0 0 0 9px var(--focus-ring);
+}
+
+/* Bouton inactif : à plat, bordure pointillée (différent par la forme, pas seulement la couleur) */
 .btn:disabled {
   color: var(--disabled-text);
   background: var(--disabled-bg);
-  border-style: dashed;
+  border: 3px dashed var(--border);
   box-shadow: none;
   cursor: not-allowed;
 }
@@ -347,55 +395,25 @@ h1 {
 
 .btn-small {
   min-height: 2.75rem;
-  padding: 0.4rem 1rem;
-  font-size: 0.95rem;
-  background: var(--yellow);
+  padding: 0.4rem 0.9rem;
+  font-size: 0.7rem;
 }
 
 /* ---------- Messages ---------- */
 
 .bubble {
-  position: relative;
   margin: 0.75rem auto 0;
   padding: 0.6rem 1rem;
   max-width: 28rem;
   background: var(--bubble);
   color: var(--ink);
   border: 3px solid var(--border);
-  border-radius: 1rem;
+  border-radius: 4px;
   font-weight: 700;
 }
 
 .bubble:empty {
   display: none;
-}
-
-/* ---------- « Ce site contient » ---------- */
-
-.features {
-  margin-top: 1.75rem;
-  padding: 0.5rem 1.25rem 1rem;
-  background: var(--panel);
-  color: var(--ink);
-  border: 4px dashed var(--border);
-  border-radius: 0.75rem;
-}
-
-.features h2 {
-  margin: 0.5rem 0;
-  font-size: 1.2rem;
-  text-align: center;
-}
-
-.features ul {
-  margin: 0;
-  padding-left: 1.4rem;
-}
-
-.features li::marker {
-  content: "✓  ";
-  color: var(--link);
-  font-weight: 700;
 }
 
 /* ---------- Pied de page ---------- */
@@ -406,13 +424,13 @@ footer {
 }
 
 footer p {
-  margin: 0 auto 0.75rem;
+  margin: 0 auto 0.9rem;
   display: inline-block;
   padding: 0.3rem 1rem;
   background: var(--panel);
   color: var(--ink);
   border: 3px solid var(--border);
-  border-radius: 999px;
+  border-radius: 2px;
 }
 
 /* ---------- Animations ----------
@@ -433,12 +451,12 @@ footer p {
     animation: bob 4s ease-in-out infinite;
   }
 
-  body:not(.calm) .steam {
-    animation: steam 3s ease-in-out infinite;
+  body:not(.calm) .sticker {
+    animation: wiggle 3.5s ease-in-out infinite;
   }
 
-  body:not(.calm) .steam-2 {
-    animation-delay: -1.5s;
+  body:not(.calm) .sticker:nth-of-type(even) {
+    animation-delay: -1.7s;
   }
 
   /* L'égaliseur ne bouge que pendant que le timer tourne */
@@ -462,9 +480,9 @@ footer p {
   50% { transform: rotate(1.5deg); }
 }
 
-@keyframes steam {
-  0%, 100% { opacity: 0.2; transform: translateY(2px); }
-  50% { opacity: 0.9; transform: translateY(-3px); }
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-8deg) scale(1); }
+  50% { transform: rotate(8deg) scale(1.12); }
 }
 
 @keyframes bounce {
@@ -487,6 +505,10 @@ footer p {
     width: 100%;
   }
 
+  .btn-small {
+    width: auto;
+  }
+
   .deco {
     font-size: 1.4rem !important;
     opacity: 0.6;
@@ -498,18 +520,19 @@ footer p {
   .lcd,
   .btn,
   .bubble,
-  .features,
-  .tagline {
+  footer p {
     border-color: CanvasText;
   }
 
-  .sky {
+  .sky,
+  .sticker {
     display: none;
   }
 }
 
 @media print {
   .sky,
+  .sticker,
   .skip-link,
   #motion-toggle {
     display: none;
