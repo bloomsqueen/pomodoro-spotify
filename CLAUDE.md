@@ -20,6 +20,7 @@ Le propriétaire du dépôt construit sa **première application** et découvre 
 - Type d'application : **appli web sans backend**.
 - Déroulé du MVP : un seul timer fixe de 45 minutes. La musique démarre automatiquement avec le timer. Pas de phase de pause ni de reprise de la musique : pour recommencer, l'utilisateur relance un timer.
 - Playlist : pas de choix de playlist dans le MVP. L'appli reprend la lecture en cours dans l'appli Spotify de l'utilisateur.
+- Adresse de retour de la connexion : calculée à partir de l'adresse où l'appli est ouverte (`getRedirectUri` dans `js/spotify.js`), donc la même appli marche en local et en ligne. Chaque adresse doit être déclarée à l'identique dans le Dashboard Spotify (Settings, puis Redirect URIs) : `http://127.0.0.1:8000/` en local, `https://pomodoro-spotify.tela-mellies.workers.dev/` en ligne. Spotify refuse `localhost` et le http hors 127.0.0.1 : l'appli l'explique au lieu de tenter la connexion.
 - Si Spotify refuse de lancer la musique (pas d'appareil actif, pas Premium, jeton refusé…), le timer ne démarre pas et un message explique pourquoi.
 - Si la pause échoue à 0:00, le message le dit clairement et demande de mettre Spotify en pause à la main.
 - Jeton d'accès (valable 1 heure) : renouvelé automatiquement avec le jeton de rafraîchissement. Au clic sur « Démarrer », s'il ne tiendra pas jusqu'à la fin du timer, il est renouvelé tout de suite, pour que la pause de 0:00 ne dépende pas d'un appel réseau fait au dernier moment. Si Spotify refuse le renouvellement (`invalid_grant`), l'utilisateur doit se reconnecter.
@@ -41,8 +42,8 @@ Le propriétaire du dépôt construit sa **première application** et découvre 
 ## Structure
 - `index.html` : la page (connexion, affichage du timer, bouton Démarrer, zone de messages).
 - `css/style.css` : le style.
-- `js/config.js` : réglages publics (Client ID, URL de retour, scopes, durée du timer).
-- `js/spotify.js` : connexion OAuth PKCE, reprise et pause de la lecture.
+- `js/config.js` : réglages publics (Client ID, scopes, durée du timer).
+- `js/spotify.js` : connexion OAuth PKCE, renouvellement du jeton, reprise et pause de la lecture, calcul de l'adresse de retour.
 - `js/timer.js` : le compte à rebours, indépendant de Spotify.
 - `js/app.js` : point d'entrée, relie la page, le timer et Spotify.
 
@@ -62,6 +63,11 @@ Le propriétaire du dépôt construit sa **première application** et découvre 
 - Il faut une app créée sur le Spotify Developer Dashboard (Client ID).
 - Un appareil Spotify actif est nécessaire, sinon l'API renvoie une erreur : gérer ce cas avec un message clair.
 - Authentification sans serveur : OAuth avec PKCE. N'utilise jamais de Client Secret dans du code côté navigateur.
+
+## Mise en ligne
+- Site publié avec Cloudflare (adresse `https://pomodoro-spotify.tela-mellies.workers.dev/`), à partir de la branche `main` : rien n'est en ligne tant que le travail n'est pas fusionné dans `main`.
+- Pas de commande de build : les fichiers du dépôt sont servis tels quels.
+- Mode développement de l'appli Spotify : 5 utilisateurs maximum, ajoutés à la main dans le Dashboard, et le propriétaire doit avoir un compte Premium.
 
 ## Sécurité
 - Aucun secret dans le dépôt. L'appli n'en a pas besoin : le Client ID est public par conception (PKCE) et vit dans `js/config.js`. Il n'y a pas de Client Secret, et il ne faut jamais en ajouter.

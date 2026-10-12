@@ -1,6 +1,6 @@
 // Tout ce qui parle à Spotify : connexion (OAuth PKCE), reprise et pause de la lecture.
 
-import { SPOTIFY_CLIENT_ID, SPOTIFY_REDIRECT_URI, SPOTIFY_SCOPES } from './config.js';
+import { SPOTIFY_CLIENT_ID, SPOTIFY_SCOPES } from './config.js';
 
 const AUTHORIZE_URL = 'https://accounts.spotify.com/authorize';
 const TOKEN_URL = 'https://accounts.spotify.com/api/token';
@@ -28,6 +28,25 @@ export async function createCodeChallenge(verifier) {
     .replace(/\//g, '_');
 }
 
+// --- Adresse de retour ---
+
+// Spotify renvoie l'utilisateur à cette adresse après la connexion. Elle doit être déclarée à
+// l'identique dans le Dashboard : on la calcule donc à partir de l'adresse où l'appli est ouverte,
+// ce qui fonctionne en local (http://127.0.0.1:8000/) comme en ligne (https://…/).
+export function getRedirectUri() {
+  return `${window.location.origin}/`;
+}
+
+// Spotify n'accepte que le https, ou une adresse de boucle locale écrite en chiffres (127.0.0.1).
+// Renvoie null si tout va bien, sinon 'localhost' ou 'insecure'.
+export function redirectUriProblem() {
+  const { protocol, hostname } = window.location;
+  if (hostname === 'localhost') return 'localhost';
+  const loopback = hostname === '127.0.0.1' || hostname === '[::1]';
+  if (protocol !== 'https:' && !loopback) return 'insecure';
+  return null;
+}
+
 // --- Connexion ---
 
 // Envoie l'utilisateur sur la page de connexion de Spotify.
@@ -42,7 +61,7 @@ export async function login() {
     response_type: 'code',
     client_id: SPOTIFY_CLIENT_ID,
     scope: SPOTIFY_SCOPES.join(' '),
-    redirect_uri: SPOTIFY_REDIRECT_URI,
+    redirect_uri: getRedirectUri(),
     state,
     code_challenge_method: 'S256',
     code_challenge: await createCodeChallenge(verifier),
@@ -79,7 +98,7 @@ export async function handleRedirect() {
         client_id: SPOTIFY_CLIENT_ID,
         grant_type: 'authorization_code',
         code,
-        redirect_uri: SPOTIFY_REDIRECT_URI,
+        redirect_uri: getRedirectUri(),
         code_verifier: verifier,
       }),
     });
