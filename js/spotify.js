@@ -1,5 +1,4 @@
 // Tout ce qui parle à Spotify : connexion (OAuth PKCE), reprise et pause de la lecture.
-// Étape en cours : la connexion. La lecture et la pause viennent à l'étape suivante.
 
 import { SPOTIFY_CLIENT_ID, SPOTIFY_REDIRECT_URI, SPOTIFY_SCOPES } from './config.js';
 
@@ -114,12 +113,61 @@ export function isLoggedIn() {
   return Boolean(tokens && tokens.accessToken && Date.now() < tokens.expiresAt);
 }
 
-// --- Lecture (étape suivante) ---
+// --- Lecture : reprendre et mettre en pause ---
 
-export async function resumePlayback() {
-  // TODO : PUT /v1/me/player/play (sans corps = reprend la lecture en cours)
+const API_URL = 'https://api.spotify.com/v1';
+
+// Le jeton d'accès s'il est encore valable, sinon null.
+function readAccessToken() {
+  const tokens = readTokens();
+  return tokens && Date.now() < tokens.expiresAt ? tokens.accessToken : null;
 }
 
-export async function pausePlayback() {
-  // TODO : PUT /v1/me/player/pause
+// Envoie une commande de lecture à Spotify.
+// Renvoie { ok: true } ou { ok: false, reason } avec reason parmi :
+// 'expired', 'no-device', 'premium', 'forbidden', 'rate-limit', 'network', 'error'.
+async function playerCommand(path) {
+  const accessToken = readAccessToken();
+  if (!accessToken) return { ok: false, reason: 'expired' };
+
+  let response;
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+  } catch {
+    return { ok: false, reason: 'network' };
+  }
+
+  if (response.ok) return { ok: true }; // Spotify répond 204 : fait, rien à lire
+
+  // Jeton refusé (révoqué, par exemple) : on l'oublie, pour que l'appli propose de se reconnecter.
+  if (response.status === 401) sessionStorage.removeItem(KEY_TOKENS);
+  return { ok: false, reason: await explainFailure(response) };
+}
+
+async function explainFailure(response) {
+  if (response.status === 401) return 'expired';
+  if (response.status === 429) return 'rate-limit';
+
+  let apiReason = '';
+  try {
+    apiReason = (await response.json()).error?.reason ?? '';
+  } catch {
+    // Pas de détail lisible : on se fie au code de la réponse.
+  }
+  if (response.status === 404 || apiReason === 'NO_ACTIVE_DEVICE') return 'no-device';
+  if (apiReason === 'PREMIUM_REQUIRED') return 'premium';
+  if (response.status === 403) return 'forbidden';
+  return 'error';
+}
+
+// Reprend la lecture en cours sur l'appareil actif (sans corps : on ne choisit pas de playlist).
+export function resumePlayback() {
+  return playerCommand('/me/player/play');
+}
+
+export function pausePlayback() {
+  return playerCommand('/me/player/pause');
 }

@@ -20,13 +20,16 @@ Le propriétaire du dépôt construit sa **première application** et découvre 
 - Type d'application : **appli web sans backend**.
 - Déroulé du MVP : un seul timer fixe de 45 minutes. La musique démarre automatiquement avec le timer. Pas de phase de pause ni de reprise de la musique : pour recommencer, l'utilisateur relance un timer.
 - Playlist : pas de choix de playlist dans le MVP. L'appli reprend la lecture en cours dans l'appli Spotify de l'utilisateur.
+- Si Spotify refuse de lancer la musique (pas d'appareil actif, pas Premium, jeton refusé…), le timer ne démarre pas et un message explique pourquoi.
+- Si la pause échoue à 0:00, le message le dit clairement et demande de mettre Spotify en pause à la main.
+- Messages à l'utilisateur : tutoiement, comme sur la page.
 - Critère de réussite : « je lance un timer de 45 min, et à 0:00 ma musique Spotify se met en pause toute seule ».
 
 - Stack : **HTML, CSS et JavaScript simples** (modules ES), sans framework, sans outil de build, sans dépendance.
 
 ## Décisions ouvertes
 À trancher avec le propriétaire avant d'écrire du code. Mettre à jour cette liste au fur et à mesure.
-- Aucune pour l'instant.
+- [ ] Jeton d'accès qui expire : renouvellement automatique avec le jeton de rafraîchissement (recommandé) ou reconnexion manuelle.
 
 ## Structure
 - `index.html` : la page (connexion, affichage du timer, bouton Démarrer, zone de messages).
@@ -36,7 +39,7 @@ Le propriétaire du dépôt construit sa **première application** et découvre 
 - `js/timer.js` : le compte à rebours, indépendant de Spotify.
 - `js/app.js` : point d'entrée, relie la page, le timer et Spotify.
 
-Les fichiers `spotify.js` et `timer.js` contiennent des fonctions à implémenter (marquées TODO).
+Pas encore fait : le renouvellement automatique du jeton d'accès (voir « Décisions ouvertes »).
 
 ## Design
 - Ambiance : skyblog des années 2000 et lofi. Thème jour (ciel bleu et rose) et thème nuit (mode sombre du système, violet).
