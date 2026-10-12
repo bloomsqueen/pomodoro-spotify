@@ -35,6 +35,7 @@ Le propriétaire du dépôt construit sa **première application** et découvre 
 - `js/spotify.js` : connexion OAuth PKCE, reprise et pause de la lecture.
 - `js/timer.js` : le compte à rebours, indépendant de Spotify.
 - `js/app.js` : point d'entrée, relie la page, le timer et Spotify.
+- `outils.html` et `css/outils.css` : page annexe, hors MVP, qui compare deux sources de ressources de vibe coding (un post sur X et le dépôt `awesome-vibecoding`). Page statique, sans JavaScript, indépendante du timer. Destinée à être publiée avec Cloudflare Pages.
 
 Les fichiers `spotify.js` et `timer.js` contiennent des fonctions à implémenter (marquées TODO).
 
