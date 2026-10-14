@@ -1,6 +1,6 @@
 # PRD : la suite de Pomodoro Spotify
 
-Statut : **brouillon du 14 octobre 2026**. Les décisions marquées « à confirmer » attendent les réponses du propriétaire. Rien ici n'est encore codé.
+Statut : **brouillon, mis à jour le 14 octobre 2026** (après un essai réel, voir la section 2 bis). Les décisions marquées « à confirmer » attendent les réponses du propriétaire. Rien ici n'est encore codé.
 
 ## 1. Objectif
 Un timer pomodoro qui lance la musique Spotify de la personne au démarrage, et la met en pause à la fin, pour travailler en musique sans y penser.
@@ -11,6 +11,15 @@ Un timer pomodoro qui lance la musique Spotify de la personne au démarrage, et 
 - Messages clairs quand Spotify refuse (pas d'appareil actif, pas Premium, connexion expirée…).
 - Jeton Spotify renouvelé automatiquement.
 - Design skyblog / lofi, accessible (contraste d'au moins 7:1, animations coupables).
+
+## 2 bis. Ce que l'essai réel a montré (14 octobre 2026)
+Le propriétaire a lancé une vraie session de 45 minutes sur le site en ligne, avec le navigateur **Arc**. Constats : à son retour, vers la 40e minute, le timer affichait **45:00**, la **page de connexion** était revenue, et **la musique ne s'est jamais arrêtée**.
+
+Explication retenue (reproduite avec une horloge simulée, pas avec le vrai Spotify) :
+- L'onglet a été déchargé puis rechargé par le navigateur : le timer, qui n'existe qu'en mémoire, est perdu. La connexion l'a été aussi (déduction : un simple rechargement la garde en temps normal, d'après la simulation).
+- Dans un onglet endormi, **aucun code ne tourne** : la pause de 0:00 n'est jamais envoyée. Ce n'est pas un problème de renouvellement du jeton (il n'a même pas été utilisé).
+- Aucun changement dans la page ne peut envoyer la pause à 0:00 si l'onglet dort. F3 et F4 permettent de **retrouver la session et d'envoyer la pause au retour**. Seule une pause envoyée par un serveur (F8) tiendrait la promesse à 100 %.
+- Piste non confirmée : épingler l'onglet dans Arc pourrait empêcher sa mise en veille (simple commentaire d'utilisateur trouvé en ligne, pas de réglage officiel confirmé).
 
 ## 3. Principes (ne changent pas)
 - Appli web, sans serveur, sans framework : HTML, CSS et JavaScript simples.
@@ -47,12 +56,13 @@ Pour chacune : l'**output attendu** (ce que la personne voit ou obtient quand ç
 ### F3. Connexion Spotify conservée après fermeture de l'onglet
 - **Output attendu :** je ferme l'onglet et je reviens dans les jours suivants : je suis toujours connectée, sans cliquer sur « Se connecter ». Un bouton « Se déconnecter » efface tout. Passé le délai, l'appli demande de se reconnecter.
 - **Technique :** jetons gardés dans le navigateur avec une date d'expiration (aujourd'hui, ils disparaissent à la fermeture de l'onglet). Compromis : un jeton gardé plus longtemps est plus exposé sur un ordinateur partagé ; le bouton de déconnexion le limite. Spotify donne au maximum 6 mois de validité au jeton de rafraîchissement.
-- **Décision D3 :** durée conservée. A (recommandée) 30 jours ; B 7 jours (plus prudent).
+- **Décision D3 : 7 jours** (confirmé par le propriétaire le 14 octobre 2026). Au bout de 7 jours, l'appli demande de se reconnecter.
+- **Pourquoi c'est prioritaire :** l'essai réel a montré que la connexion peut être perdue quand le navigateur décharge l'onglet.
 - **Vérification :** fermer puis rouvrir l'onglet ; simuler l'expiration ; tester « Se déconnecter ».
 
 ### F4. Garder le timer si on ferme ou recharge l'onglet
 - **Output attendu :** je rouvre la page pendant une session : le timer affiche le temps restant réel et continue. Si le temps s'est écoulé pendant mon absence, je vois « Temps écoulé », et Spotify est mis en pause à la réouverture (si la musique joue encore).
-- **Limite assumée :** une page fermée ne peut rien envoyer. **Si on ferme l'onglet, Spotify ne se met pas en pause à 0:00.** Ça demanderait un serveur, hors périmètre. L'appli le dit clairement.
+- **Limite assumée :** une page fermée ou endormie ne peut rien envoyer. **Si l'onglet est fermé, déchargé ou endormi (cas constaté avec Arc), Spotify ne se met pas en pause à 0:00.** À la réouverture ou au réveil, l'appli détecte que la session a continué sans elle, envoie la pause tout de suite et le dit clairement (par exemple « ta session s'est interrompue, Spotify a été mis en pause »). Seul un serveur (F8) pourrait envoyer la pause à l'heure exacte.
 - **Technique :** l'heure de fin et la phase en cours sont enregistrées dans le navigateur.
 - **Vérification :** recharger au milieu d'une session ; fermer, attendre la fin, rouvrir.
 
@@ -75,18 +85,27 @@ Trois niveaux, du plus simple au plus complexe (voir la section 7 pour l'évalua
 - **F7c. Une playlist spéciale pour la pause**, puis retour à la musique de travail.
 - **Décision D8 :** garder en réserve, ou lancer l'un de ces niveaux après F6.
 
+### F8. Pause garantie par un serveur (idée à évaluer, pas décidée)
+- **Pourquoi :** c'est la seule façon de tenir la promesse « Spotify se met en pause tout seul à 0:00 » quand l'onglet est fermé, déchargé ou endormi.
+- **Output attendu :** la musique s'arrête à 0:00, à quelques secondes près, **quel que soit l'état de l'onglet**.
+- **Compromis (non chiffrés, à étudier) :** un petit service (par exemple chez Cloudflare, avec une alarme programmée à l'heure de fin) devrait **garder le jeton Spotify** de la personne et envoyer lui-même la pause. Cela change le modèle de sécurité et de confidentialité (un jeton gardé côté serveur), demande d'identifier chaque personne, ajoute du code à écrire et à maintenir, et contredit la décision « sans serveur ».
+- **Décision D9 :** A (recommandée pour l'instant) rester sans serveur et réaliser F3 et F4 ; B étudier F8 plus tard, si F3 et F4 ne suffisent pas à l'usage.
+
 ## 5. Ordre de réalisation recommandé
-1. F0 : pause fiable en arrière-plan.
-2. F1 : lire l'état de Spotify.
-3. F2 : signal de fin.
-4. F3 : connexion conservée.
-5. F4 et F5 ensemble : timer conservé et pause (même mémoire de l'état).
-6. F6 : enchaînement des sessions (s'appuie sur tout ce qui précède).
-7. F7 : seulement si D8 le décide.
+**Prochaine session : commencer par F3 puis F4** (décision du propriétaire, après l'essai réel du 14 octobre).
+1. F3 : connexion conservée (7 jours).
+2. F4 : timer conservé, avec détection d'un onglet qui a dormi (pause envoyée au retour).
+3. F0 : pause fiable en arrière-plan (alarme unique à l'heure de fin).
+4. F1 : lire l'état de Spotify.
+5. F2 : signal de fin.
+6. F5 : pause du timer (s'appuie sur la mémoire de l'état de F4).
+7. F6 : enchaînement des sessions (s'appuie sur tout ce qui précède).
+8. F7 : seulement si D8 le décide.
+9. F8 : seulement si D9 le décide.
 
 ## 6. Hors périmètre
 - Durées réglables par l'utilisateur (le README les classe hors périmètre).
-- Serveur ou comptes utilisateurs : pas de pause automatique appli fermée.
+- Serveur ou comptes utilisateurs : pas de pause automatique appli fermée, **sauf** F8 si elle est retenue.
 - Application mobile native.
 - Choix de playlist, **sauf** F7c si elle est retenue.
 - **Apple Music et Deezer : hors périmètre pour l'instant** (décision du propriétaire, 14 octobre 2026). Spotify est le seul service pris en charge. Voir la section 10 pour ce qui a été évalué.
@@ -103,9 +122,10 @@ Ce que permet l'API Spotify, d'après sa documentation :
 Recommandation : réaliser F7 après F6, car tout dépend des phases et de la lecture de l'état (F1). Commencer par F7a si le besoin se confirme, puis F7c avec un lien collé (sans autorisation supplémentaire), et laisser F7b en option.
 
 ## 8. Risques et points à vérifier par un essai réel
-- **Onglet en arrière-plan** (F0) : mesurer l'heure réelle d'arrêt de la musique.
+- **Onglet endormi ou déchargé par le navigateur** (constaté avec Arc le 14 octobre) : aucun code ne tourne, la pause n'est pas envoyée. Atténué par F3 et F4 (récupération au retour), résolu seulement par F8.
+- **Onglet en arrière-plan ralenti** (F0) : mesurer l'heure réelle d'arrêt de la musique.
 - **Refus de Spotify quand le lecteur est déjà dans l'état demandé** (F1) : essai réel avec un timer court (pause manuelle avant la fin, puis lecture manuelle avant le démarrage).
-- **Jetons conservés plus longtemps** (F3) : compromis de sécurité, limité par l'expiration et le bouton de déconnexion.
+- **Jetons conservés plus longtemps** (F3, 7 jours) : compromis de sécurité, limité par l'expiration et le bouton de déconnexion.
 - **Mode développement de l'appli Spotify** : 5 utilisateurs maximum, ajoutés à la main, propriétaire avec un compte Premium.
 - **Pas de tests automatisés dans le dépôt** : mes vérifications sont des scripts jetables. À décider s'il faut en ajouter.
 
@@ -114,12 +134,13 @@ Recommandation : réaliser F7 après F6, car tout dépend des phases et de la le
 |---|---|---|---|
 | D1 | Lire l'état de Spotify | A : oui | à confirmer |
 | D2 | Notification du navigateur | A : non pour l'instant | à confirmer |
-| D3 | Durée de la connexion conservée | A : 30 jours | à confirmer |
+| D3 | Durée de la connexion conservée | 7 jours | **confirmé** (14 octobre 2026) |
 | D4 | La pause du timer coupe aussi la musique | A : oui | à confirmer |
 | D5 | Musique pendant les 15 minutes de pause | A : coupée | à confirmer |
 | D6 | Après la pause | A : démarrage automatique + signal | à confirmer |
 | D7 | Nombre de sessions | A : jusqu'à « Arrêter » | à confirmer |
 | D8 | F7 (musique selon la phase) | A : en réserve | à confirmer |
+| D9 | F8 (pause garantie par un serveur) | A : sans serveur pour l'instant | à confirmer |
 
 ## 10. Apple Music et Deezer : ce qui a été évalué (14 octobre 2026)
 Décision : **hors périmètre pour l'instant.** Ce qui suit évite de refaire la recherche si la question revient.

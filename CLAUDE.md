@@ -38,8 +38,10 @@ Le propriétaire du dépôt construit sa **première application** et découvre 
 1. ~~Retours sur le design de l'accueil~~ : validé par le propriétaire.
 2. ~~Remettre la durée à 45 minutes~~ : fait.
 3. ~~Renouvellement du jeton d'accès~~ : fait (option A choisie par le propriétaire).
-4. PRD de la suite du projet : brouillon écrit dans `PRD.md` (chaque fonctionnalité avec son **output attendu**). **Attendre les réponses du propriétaire aux décisions D1 à D8** (tableau de la section 9), puis mettre le PRD à jour avant de coder.
-5. Réaliser les fonctionnalités dans l'ordre de la section 5 du PRD, une à la fois (un commit par étape testable).
+4. PRD de la suite du projet : brouillon dans `PRD.md` (chaque fonctionnalité avec son **output attendu**). Décision D3 confirmée (connexion conservée **7 jours**). Les autres décisions (D1, D2, D4 à D9, tableau de la section 9) restent à confirmer **avant de coder la fonctionnalité concernée**.
+5. **Prochaine session : commencer par F3 puis F4** (connexion conservée, puis timer conservé avec détection d'un onglet endormi). Constat de l'essai réel du 14 octobre 2026 (navigateur Arc) : l'onglet a été déchargé, le timer et la connexion ont été perdus, et la musique n'a jamais été mise en pause, car aucun code ne tourne dans un onglet endormi. Voir la section 2 bis du `PRD.md`.
+6. Ensuite, suivre l'ordre de la section 5 du PRD, une fonctionnalité à la fois (un commit par étape testable).
+7. Quand F3 sera codée, mettre à jour la section « Sécurité » (les jetons ne resteront plus seulement dans l'onglet).
 
 ## Structure
 - `index.html` : la page (connexion, affichage du timer, bouton Démarrer, zone de messages).
