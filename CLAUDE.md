@@ -19,6 +19,7 @@ Le propriétaire du dépôt construit sa **première application** et découvre 
 ## Décisions prises
 - Type d'application : **appli web sans backend**.
 - Déroulé du MVP : un seul timer fixe de 45 minutes. La musique démarre automatiquement avec le timer. Pas de phase de pause ni de reprise de la musique : pour recommencer, l'utilisateur relance un timer.
+- Services de musique : **Spotify uniquement**. Apple Music et Deezer sont hors périmètre pour l'instant (évalués le 14 octobre 2026, voir la section 10 de `PRD.md`). Le contrôle de la musique est au cœur du produit.
 - Playlist : pas de choix de playlist dans le MVP. L'appli reprend la lecture en cours dans l'appli Spotify de l'utilisateur.
 - Adresse de retour de la connexion : calculée à partir de l'adresse où l'appli est ouverte (`getRedirectUri` dans `js/spotify.js`), donc la même appli marche en local et en ligne. Chaque adresse doit être déclarée à l'identique dans le Dashboard Spotify (Settings, puis Redirect URIs) : `http://127.0.0.1:8000/` en local, `https://pomodoro-spotify.tela-mellies.workers.dev/` en ligne. Spotify refuse `localhost` et le http hors 127.0.0.1 : l'appli l'explique au lieu de tenter la connexion.
 - Si Spotify refuse de lancer la musique (pas d'appareil actif, pas Premium, jeton refusé…), le timer ne démarre pas et un message explique pourquoi.

@@ -14,6 +14,7 @@ Un timer pomodoro qui lance la musique Spotify de la personne au démarrage, et 
 
 ## 3. Principes (ne changent pas)
 - Appli web, sans serveur, sans framework : HTML, CSS et JavaScript simples.
+- **Le contrôle de la musique est au cœur du produit** : pas de « mode sans contrôle » où la personne lance sa musique elle-même.
 - Durées fixes (45 minutes de travail, 15 minutes de pause) : pas de réglage par l'utilisateur.
 - Messages en tutoiement. Accessibilité obligatoire sur tout nouvel écran.
 - Aucun secret dans le dépôt ; les jetons ne sont jamais écrits dans un fichier.
@@ -88,6 +89,7 @@ Trois niveaux, du plus simple au plus complexe (voir la section 7 pour l'évalua
 - Serveur ou comptes utilisateurs : pas de pause automatique appli fermée.
 - Application mobile native.
 - Choix de playlist, **sauf** F7c si elle est retenue.
+- **Apple Music et Deezer : hors périmètre pour l'instant** (décision du propriétaire, 14 octobre 2026). Spotify est le seul service pris en charge. Voir la section 10 pour ce qui a été évalué.
 
 ## 7. Évaluation de F7 (musique selon la phase)
 Ce que permet l'API Spotify, d'après sa documentation :
@@ -118,3 +120,20 @@ Recommandation : réaliser F7 après F6, car tout dépend des phases et de la le
 | D6 | Après la pause | A : démarrage automatique + signal | à confirmer |
 | D7 | Nombre de sessions | A : jusqu'à « Arrêter » | à confirmer |
 | D8 | F7 (musique selon la phase) | A : en réserve | à confirmer |
+
+## 10. Apple Music et Deezer : ce qui a été évalué (14 octobre 2026)
+Décision : **hors périmètre pour l'instant.** Ce qui suit évite de refaire la recherche si la question revient.
+
+**La différence de fond.** Avec Spotify, l'appli est une télécommande : la musique joue dans l'appli Spotify de la personne et la page envoie « play » ou « pause ». Chez Apple Music et Deezer, la page devient le lecteur (MusicKit JS d'un côté, plugins et SDK JavaScript de l'autre). Déduction (non testée) : la musique s'arrêterait avec l'onglet, il faudrait choisir une playlist dans l'appli, et la lecture automatique de la session suivante pourrait être bloquée par les règles du navigateur. Cela toucherait F4, F6 et la décision « pas de choix de playlist ». Ajouter un service demanderait de réorganiser l'appli autour d'un « fournisseur de musique », pas seulement d'ajouter une connexion.
+
+**Apple Music (complexité élevée).**
+- Jeton de développeur signé avec une clé privée créée dans le compte développeur d'Apple, valable 6 mois au maximum.
+- Compte développeur payant : réponse d'un forum Apple, non confirmée par la documentation officielle.
+- Peut-être possible sans serveur, avec un jeton collé dans la configuration et renouvelé à la main : non confirmé.
+- Abonnement Apple Music actif obligatoire pour la personne ; script externe (MusicKit JS) chargé depuis un serveur d'Apple, ce qui irait contre la règle « aucune dépendance externe ».
+
+**Deezer (complexité et risque élevés).**
+- Confirmé par les règles de Deezer : l'API ne donne que des extraits de 30 secondes. Les morceaux entiers passent par les plugins web et le SDK JavaScript, pour les abonnés Premium. Usage strictement non commercial.
+- Non vérifié : la documentation du SDK et la création d'application sont derrière une connexion à un compte Deezer. Impossible de dire si de nouvelles applications peuvent encore être créées, ni comment piloter la lecture. Les conditions d'utilisation semblent anciennes.
+
+**Si la question revient :** se connecter sur developers.deezer.com pour vérifier que la création d'application est ouverte ; vérifier auprès d'Apple si un compte développeur payant est requis ; puis chiffrer le travail de réorganisation autour d'un « fournisseur de musique ».
