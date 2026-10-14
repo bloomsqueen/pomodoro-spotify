@@ -37,7 +37,8 @@ Le propriétaire du dépôt construit sa **première application** et découvre 
 1. ~~Retours sur le design de l'accueil~~ : validé par le propriétaire.
 2. ~~Remettre la durée à 45 minutes~~ : fait.
 3. ~~Renouvellement du jeton d'accès~~ : fait (option A choisie par le propriétaire).
-4. **Rappeler au propriétaire** : écrire ensemble le PRD de la suite du projet. Pour chaque fonctionnalité, noter l'**output attendu** (ce que l'utilisateur voit ou obtient quand elle fonctionne).
+4. PRD de la suite du projet : brouillon écrit dans `PRD.md` (chaque fonctionnalité avec son **output attendu**). **Attendre les réponses du propriétaire aux décisions D1 à D8** (tableau de la section 9), puis mettre le PRD à jour avant de coder.
+5. Réaliser les fonctionnalités dans l'ordre de la section 5 du PRD, une à la fois (un commit par étape testable).
 
 ## Structure
 - `index.html` : la page (connexion, affichage du timer, bouton Démarrer, zone de messages).
@@ -46,6 +47,7 @@ Le propriétaire du dépôt construit sa **première application** et découvre 
 - `js/spotify.js` : connexion OAuth PKCE, renouvellement du jeton, reprise et pause de la lecture, calcul de l'adresse de retour.
 - `js/timer.js` : le compte à rebours, indépendant de Spotify.
 - `js/app.js` : point d'entrée, relie la page, le timer et Spotify.
+- `PRD.md` : cahier des charges de la suite (fonctionnalités, output attendu, décisions en attente, risques).
 
 
 ## Design
