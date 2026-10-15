@@ -55,6 +55,7 @@ Pour chacune : l'**output attendu** (ce que la personne voit ou obtient quand ç
 - **Vérification :** le titre change pendant le décompte et à la fin ; le son se déclenche une fois par transition, onglet actif ou caché.
 
 ### F3. Connexion Spotify conservée après fermeture de l'onglet
+- **Statut : codée le 15 octobre 2026**, vérifiée avec un faux Spotify (dont le cas d'une connexion terminée dans un autre onglet). **À essayer en vrai** avec l'onglet épinglé dans Arc.
 - **Output attendu :** je ferme l'onglet et je reviens dans les jours suivants : je suis toujours connectée, sans cliquer sur « Se connecter ». Un bouton « Se déconnecter » efface tout. Passé le délai, l'appli demande de se reconnecter.
 - **Technique :** jetons gardés dans le navigateur avec une date d'expiration (aujourd'hui, ils disparaissent à la fermeture de l'onglet). Compromis : un jeton gardé plus longtemps est plus exposé sur un ordinateur partagé ; le bouton de déconnexion le limite. Spotify donne au maximum 6 mois de validité au jeton de rafraîchissement.
 - **Connexion depuis un autre onglet ou une fenêtre (cas constaté avec Arc et un onglet épinglé) :** si Spotify s'ouvre ailleurs, l'onglet d'origine doit quand même devenir connecté, sans rechargement. Les valeurs temporaires de la connexion (code secret et `state`) doivent donc pouvoir être retrouvées par l'onglet qui reçoit le retour de Spotify.

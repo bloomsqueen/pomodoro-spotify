@@ -1,15 +1,31 @@
 // Tout ce qui parle à Spotify : connexion (OAuth PKCE), reprise et pause de la lecture.
 
 import { SPOTIFY_CLIENT_ID, SPOTIFY_SCOPES } from './config.js';
+import { getItem, setItem, removeItem, listKeys, onChange, runExclusive } from './storage.js';
 
 const AUTHORIZE_URL = 'https://accounts.spotify.com/authorize';
 const TOKEN_URL = 'https://accounts.spotify.com/api/token';
 
-// sessionStorage : les valeurs survivent au rechargement de la page dans cet onglet,
-// et disparaissent quand on le ferme. Rien n'est jamais écrit dans un fichier du dépôt.
-const KEY_VERIFIER = 'spotify_code_verifier';
-const KEY_STATE = 'spotify_state';
+// Les jetons sont gardés dans le navigateur (localStorage, partagé entre les onglets) pendant
+// 7 jours à partir de la connexion, puis il faut se reconnecter. Rien n'est jamais écrit dans un
+// fichier du dépôt, et le bouton « Se déconnecter » efface tout.
 const KEY_TOKENS = 'spotify_tokens';
+const LOGIN_LIFETIME_MS = 7 * 24 * 60 * 60 * 1000;
+
+// Valeurs temporaires de la connexion (code secret), retrouvables par le `state` que Spotify
+// nous renvoie : c'est ce qui permet de terminer la connexion dans un autre onglet que celui
+// où l'on a cliqué (cas constaté avec un onglet épinglé dans Arc).
+const PKCE_PREFIX = 'spotify_pkce_';
+const PKCE_MAX_AGE_MS = 10 * 60 * 1000;
+
+// Anciennes versions : les jetons étaient dans sessionStorage. On les efface (il faudra se reconnecter une fois).
+try {
+  sessionStorage.removeItem('spotify_tokens');
+  sessionStorage.removeItem('spotify_code_verifier');
+  sessionStorage.removeItem('spotify_state');
+} catch {
+  // Pas de sessionStorage : rien à nettoyer.
+}
 
 // --- PKCE : le « code secret » et son empreinte ---
 
@@ -51,10 +67,10 @@ export function redirectUriProblem() {
 
 // Envoie l'utilisateur sur la page de connexion de Spotify.
 export async function login() {
+  forgetStalePkce();
   const verifier = generateRandomString(64);
   const state = generateRandomString(16); // protège contre les retours qui ne viennent pas de nous
-  sessionStorage.setItem(KEY_VERIFIER, verifier);
-  sessionStorage.setItem(KEY_STATE, state);
+  setItem(PKCE_PREFIX + state, JSON.stringify({ verifier, createdAt: Date.now() }));
 
   const url = new URL(AUTHORIZE_URL);
   url.search = new URLSearchParams({
@@ -79,16 +95,16 @@ export async function handleRedirect() {
   const code = params.get('code');
   const error = params.get('error');
   const returnedState = params.get('state');
-  const expectedState = sessionStorage.getItem(KEY_STATE);
-  const verifier = sessionStorage.getItem(KEY_VERIFIER);
 
-  // Ces valeurs ne servent qu'une fois : on les efface, et on nettoie l'adresse, quoi qu'il arrive.
-  sessionStorage.removeItem(KEY_STATE);
-  sessionStorage.removeItem(KEY_VERIFIER);
+  // On retrouve le code secret grâce au `state` renvoyé par Spotify (même depuis un autre onglet).
+  // Il ne sert qu'une fois : on l'efface, et on nettoie l'adresse, quoi qu'il arrive.
+  const pending = returnedState ? readPkce(returnedState) : null;
+  if (returnedState) removeItem(PKCE_PREFIX + returnedState);
   window.history.replaceState({}, document.title, window.location.pathname);
 
   if (error) return error === 'access_denied' ? 'denied' : 'error';
-  if (!code || !verifier || !returnedState || returnedState !== expectedState) return 'error';
+  if (!code || !pending) return 'error';
+  const verifier = pending.verifier;
 
   try {
     const response = await fetch(TOKEN_URL, {
@@ -103,29 +119,70 @@ export async function handleRedirect() {
       }),
     });
     if (!response.ok) return 'error';
-    saveTokens(await response.json());
+    saveTokens(await response.json(), { loginExpiresAt: Date.now() + LOGIN_LIFETIME_MS });
     return 'connected';
   } catch {
     return 'error';
   }
 }
 
+function readPkce(state) {
+  try {
+    const entry = JSON.parse(getItem(PKCE_PREFIX + state));
+    if (!entry || !entry.verifier || Date.now() - entry.createdAt > PKCE_MAX_AGE_MS) return null;
+    return entry;
+  } catch {
+    return null;
+  }
+}
+
+// Efface les connexions commencées il y a longtemps et jamais terminées.
+function forgetStalePkce() {
+  for (const key of listKeys(PKCE_PREFIX)) {
+    if (!readPkce(key.slice(PKCE_PREFIX.length))) removeItem(key);
+  }
+}
+
+// `loginExpiresAt` : date à laquelle il faudra se reconnecter (7 jours après la connexion). Un renouvellement
+// du jeton d'accès ne la repousse pas.
 // Spotify ne renvoie pas toujours un nouveau jeton de rafraîchissement quand on en utilise un :
 // dans ce cas, on garde l'ancien (qui reste valable).
-function saveTokens({ access_token, refresh_token, expires_in }, previousRefreshToken = null) {
-  sessionStorage.setItem(KEY_TOKENS, JSON.stringify({
+function saveTokens({ access_token, refresh_token, expires_in }, { refreshToken = null, loginExpiresAt }) {
+  setItem(KEY_TOKENS, JSON.stringify({
     accessToken: access_token,
-    refreshToken: refresh_token ?? previousRefreshToken,
+    refreshToken: refresh_token ?? refreshToken,
     expiresAt: Date.now() + expires_in * 1000,
+    loginExpiresAt,
   }));
 }
 
 function readTokens() {
+  let tokens = null;
   try {
-    return JSON.parse(sessionStorage.getItem(KEY_TOKENS));
+    tokens = JSON.parse(getItem(KEY_TOKENS));
   } catch {
     return null;
   }
+  if (!tokens) return null;
+  // Connexion trop ancienne (ou format inconnu) : on efface, il faut se reconnecter.
+  if (!tokens.loginExpiresAt || Date.now() >= tokens.loginExpiresAt) {
+    removeItem(KEY_TOKENS);
+    return null;
+  }
+  return tokens;
+}
+
+// Efface tout ce que l'appli garde au sujet de la connexion (bouton « Se déconnecter »).
+export function logout() {
+  removeItem(KEY_TOKENS);
+  for (const key of listKeys(PKCE_PREFIX)) removeItem(key);
+}
+
+// Appelle `callback()` quand un autre onglet se connecte ou se déconnecte.
+export function onConnectionChange(callback) {
+  onChange((key) => {
+    if (key === null || key === KEY_TOKENS) callback();
+  });
 }
 
 // Vrai si on est connecté : un jeton d'accès encore valable, ou de quoi en obtenir un nouveau.
@@ -140,24 +197,31 @@ export function isLoggedIn() {
 // sans redemander l'accord de l'utilisateur.
 
 const SAFETY_MARGIN_MS = 30 * 1000; // on renouvelle un peu avant l'expiration réelle
-let refreshInFlight = null; // évite deux renouvellements en même temps
+let refreshInFlight = null; // évite deux renouvellements en même temps dans cet onglet
 
 // Renvoie { accessToken } ou { reason } avec reason parmi 'expired', 'network', 'error'.
-function refreshAccessToken() {
+// Entre onglets, un verrou fait attendre le second : Spotify peut remplacer le jeton de rafraîchissement
+// à chaque utilisation, et deux onglets qui renouvellent en même temps pourraient se déconnecter l'un l'autre.
+function refreshAccessToken(options = {}) {
   if (!refreshInFlight) {
-    refreshInFlight = doRefresh().finally(() => {
+    refreshInFlight = runExclusive('spotify-token-refresh', () => doRefresh(options)).finally(() => {
       refreshInFlight = null;
     });
   }
   return refreshInFlight;
 }
 
-async function doRefresh() {
+async function doRefresh({ minLifetimeMs = 0, rejectedToken = null } = {}) {
   const tokens = readTokens();
   if (!tokens || !tokens.refreshToken) {
-    sessionStorage.removeItem(KEY_TOKENS);
+    removeItem(KEY_TOKENS);
     return { reason: 'expired' };
   }
+
+  // Un autre onglet a peut-être déjà renouvelé le jeton pendant qu'on attendait le verrou.
+  const alreadyRenewed = tokens.accessToken && tokens.accessToken !== rejectedToken
+    && Date.now() + minLifetimeMs + SAFETY_MARGIN_MS < tokens.expiresAt;
+  if (alreadyRenewed) return { accessToken: tokens.accessToken };
 
   let response;
   try {
@@ -182,13 +246,13 @@ async function doRefresh() {
   }
 
   if (response.ok && body && body.access_token) {
-    saveTokens(body, tokens.refreshToken);
+    saveTokens(body, { refreshToken: tokens.refreshToken, loginExpiresAt: tokens.loginExpiresAt });
     return { accessToken: body.access_token };
   }
 
   // 'invalid_grant' : le jeton de rafraîchissement est révoqué ou expiré. Il faut se reconnecter.
   if (body && body.error === 'invalid_grant') {
-    sessionStorage.removeItem(KEY_TOKENS);
+    removeItem(KEY_TOKENS);
     return { reason: 'expired' };
   }
   return { reason: 'error' };
@@ -202,7 +266,7 @@ async function getAccessToken(minLifetimeMs = 0) {
 
   const stillGood = tokens.accessToken && Date.now() + minLifetimeMs + SAFETY_MARGIN_MS < tokens.expiresAt;
   if (stillGood) return { accessToken: tokens.accessToken };
-  return refreshAccessToken();
+  return refreshAccessToken({ minLifetimeMs });
 }
 
 // --- Lecture : reprendre et mettre en pause ---
@@ -233,12 +297,12 @@ async function playerCommand(path, minLifetimeMs = 0) {
 
   // Jeton refusé alors qu'on le croyait valable (révoqué, horloge décalée) : un nouvel essai avec un jeton neuf.
   if (response.status === 401) {
-    const renewed = await refreshAccessToken();
+    const renewed = await refreshAccessToken({ rejectedToken: auth.accessToken });
     if (!renewed.accessToken) return { ok: false, reason: renewed.reason };
     response = await sendPlayerCommand(path, renewed.accessToken);
     if (!response) return { ok: false, reason: 'network' };
     if (response.status === 401) {
-      sessionStorage.removeItem(KEY_TOKENS);
+      removeItem(KEY_TOKENS);
       return { ok: false, reason: 'expired' };
     }
   }

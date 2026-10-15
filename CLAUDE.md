@@ -23,6 +23,7 @@ Le propriétaire du dépôt construit sa **première application** et découvre 
 - Services de musique : **Spotify uniquement**. Apple Music et Deezer sont hors périmètre pour l'instant (évalués le 14 octobre 2026, voir la section 10 de `PRD.md`). Le contrôle de la musique est au cœur du produit.
 - Playlist : pas de choix de playlist dans le MVP. L'appli reprend la lecture en cours dans l'appli Spotify de l'utilisateur.
 - Adresse de retour de la connexion : calculée à partir de l'adresse où l'appli est ouverte (`getRedirectUri` dans `js/spotify.js`), donc la même appli marche en local et en ligne. Chaque adresse doit être déclarée à l'identique dans le Dashboard Spotify (Settings, puis Redirect URIs) : `http://127.0.0.1:8000/` en local, `https://pomodoro-spotify.tela-mellies.workers.dev/` en ligne. Spotify refuse `localhost` et le http hors 127.0.0.1 : l'appli l'explique au lieu de tenter la connexion.
+- Connexion Spotify **conservée 7 jours** (décision D3), à partir de la connexion, puis reconnexion obligatoire. Jetons dans `localStorage` (partagé entre tous les onglets), jamais de cookies. La connexion peut se terminer dans un autre onglet que celui où l'on a cliqué : le code secret temporaire est retrouvé grâce au `state` que Spotify renvoie, et les autres onglets se mettent à jour tout seuls. Le bouton « Se déconnecter » efface tout (grisé pendant une session). Le renouvellement du jeton passe par un verrou entre onglets (Web Locks) : Spotify peut remplacer le jeton de rafraîchissement à chaque usage, et deux onglets qui renouvellent en même temps se déconnecteraient l'un l'autre.
 - Si Spotify refuse de lancer la musique (pas d'appareil actif, pas Premium, jeton refusé…), le timer ne démarre pas et un message explique pourquoi.
 - Si la pause échoue à 0:00, le message le dit clairement et demande de mettre Spotify en pause à la main.
 - Jeton d'accès (valable 1 heure) : renouvelé automatiquement avec le jeton de rafraîchissement. Au clic sur « Démarrer », s'il ne tiendra pas jusqu'à la fin du timer, il est renouvelé tout de suite, pour que la pause de 0:00 ne dépende pas d'un appel réseau fait au dernier moment. Si Spotify refuse le renouvellement (`invalid_grant`), l'utilisateur doit se reconnecter.
@@ -40,15 +41,16 @@ Le propriétaire du dépôt construit sa **première application** et découvre 
 2. ~~Remettre la durée à 45 minutes~~ : fait.
 3. ~~Renouvellement du jeton d'accès~~ : fait (option A choisie par le propriétaire).
 4. PRD de la suite du projet : brouillon dans `PRD.md` (chaque fonctionnalité avec son **output attendu**). Décisions confirmées : D3 (connexion conservée **7 jours**) et D9 (**pas de serveur**). Les autres décisions (D1, D2, D4 à D8, D10, D11, tableau de la section 9) restent à confirmer **avant de coder la fonctionnalité concernée**.
-5. **Prochaine session : commencer par F3 puis F4** (connexion conservée, puis timer conservé avec détection d'un onglet endormi). Constat de l'essai réel du 14 octobre 2026 (navigateur Arc) : l'onglet a été déchargé, le timer et la connexion ont été perdus, et la musique n'a jamais été mise en pause, car aucun code ne tourne dans un onglet endormi. Voir la section 2 bis du `PRD.md`. Autre constat (essai avec un onglet épinglé dans Arc, 15 octobre) : la connexion à Spotify peut s'ouvrir dans une autre fenêtre, et les valeurs gardées par onglet (`sessionStorage`) ne sont pas partagées. F3 doit donc utiliser `localStorage` (jetons et valeurs temporaires de la connexion) et mettre à jour l'écran des autres onglets quand la connexion change.
+5. **F3 codée (15 octobre 2026), F4 en cours.** Ordre décidé : F3 puis F4 (connexion conservée, puis timer conservé avec détection d'un onglet endormi). Constat de l'essai réel du 14 octobre 2026 (navigateur Arc) : l'onglet a été déchargé, le timer et la connexion ont été perdus, et la musique n'a jamais été mise en pause, car aucun code ne tourne dans un onglet endormi. Voir la section 2 bis du `PRD.md`. Autre constat (essai avec un onglet épinglé dans Arc, 15 octobre) : la connexion à Spotify peut s'ouvrir dans une autre fenêtre, et les valeurs gardées par onglet (`sessionStorage`) ne sont pas partagées. F3 doit donc utiliser `localStorage` (jetons et valeurs temporaires de la connexion) et mettre à jour l'écran des autres onglets quand la connexion change.
 6. Ensuite, suivre l'ordre de la section 5 du PRD, une fonctionnalité à la fois (un commit par étape testable).
-7. Quand F3 sera codée, mettre à jour la section « Sécurité » (les jetons ne resteront plus seulement dans l'onglet).
+7. ~~Mettre à jour la section « Sécurité »~~ : fait avec F3.
 
 ## Structure
 - `index.html` : la page (connexion, affichage du timer, bouton Démarrer, zone de messages).
 - `css/style.css` : le style.
 - `js/config.js` : réglages publics (Client ID, scopes, durée du timer).
-- `js/spotify.js` : connexion OAuth PKCE, renouvellement du jeton, reprise et pause de la lecture, calcul de l'adresse de retour.
+- `js/spotify.js` : connexion OAuth PKCE (conservée 7 jours, multi-onglets), déconnexion, renouvellement du jeton, reprise et pause de la lecture, calcul de l'adresse de retour.
+- `js/storage.js` : stockage du navigateur partagé entre onglets (`localStorage`, avec repli en mémoire si le navigateur le refuse), écoute des changements des autres onglets, verrous entre onglets.
 - `js/timer.js` : le compte à rebours, indépendant de Spotify.
 - `js/app.js` : point d'entrée, relie la page, le timer et Spotify.
 - `PRD.md` : cahier des charges de la suite (fonctionnalités, output attendu, décisions en attente, risques).
@@ -77,7 +79,7 @@ Le propriétaire du dépôt construit sa **première application** et découvre 
 
 ## Sécurité
 - Aucun secret dans le dépôt. L'appli n'en a pas besoin : le Client ID est public par conception (PKCE) et vit dans `js/config.js`. Il n'y a pas de Client Secret, et il ne faut jamais en ajouter.
-- Ne committe jamais de jeton (d'accès ou de rafraîchissement) Spotify. Ils restent dans `sessionStorage` : ils disparaissent à la fermeture de l'onglet, et ne sont jamais écrits dans un fichier du dépôt.
+- Ne committe jamais de jeton (d'accès ou de rafraîchissement) Spotify. Ils sont gardés dans `localStorage` du navigateur pendant 7 jours au plus (compromis assumé : un script malveillant sur le même site pourrait les lire, d'où l'absence de tout script externe ; sur un ordinateur partagé, « Se déconnecter » les efface). Ils ne sont jamais écrits dans un fichier du dépôt, ni envoyés à un serveur.
 - `.env` reste dans `.gitignore` par précaution, au cas où un fichier de ce type serait ajouté un jour.
 
 ## Commandes

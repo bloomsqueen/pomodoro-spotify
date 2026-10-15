@@ -3,11 +3,14 @@
 
 import { TIMER_DURATION_MINUTES } from './config.js';
 import { createTimer, formatTime } from './timer.js';
-import { handleRedirect, isLoggedIn, login, pausePlayback, redirectUriProblem, resumePlayback } from './spotify.js';
+import {
+  handleRedirect, isLoggedIn, login, logout, onConnectionChange, pausePlayback, redirectUriProblem, resumePlayback,
+} from './spotify.js';
 
 const timerDisplay = document.getElementById('timer-display');
 const startButton = document.getElementById('start-button');
 const connectButton = document.getElementById('connect-button');
+const logoutButton = document.getElementById('logout-button');
 const message = document.getElementById('message');
 
 const durationSeconds = TIMER_DURATION_MINUTES * 60;
@@ -63,15 +66,29 @@ try {
   // Stockage indisponible : on garde l'état par défaut.
 }
 
-// Le bouton Démarrer n'est utilisable que si on est connecté à Spotify.
+const sessionRunning = () => document.body.classList.contains('is-running');
+
+// Le bouton Démarrer n'est utilisable que si on est connecté à Spotify. « Se déconnecter » ne l'est
+// pas pendant une session : on ne pourrait plus mettre Spotify en pause à la fin.
+let wasLoggedIn = false;
+
 function updateConnectionUi() {
   const loggedIn = isLoggedIn();
   connectButton.hidden = loggedIn;
-  startButton.disabled = !loggedIn;
+  logoutButton.hidden = !loggedIn;
+  logoutButton.disabled = sessionRunning();
+  startButton.disabled = !loggedIn || sessionRunning();
+  wasLoggedIn = loggedIn;
 }
 
 connectButton.addEventListener('click', () => {
   login();
+});
+
+logoutButton.addEventListener('click', () => {
+  logout();
+  updateConnectionUi();
+  message.textContent = 'La connexion à Spotify a été supprimée de cet appareil.';
 });
 
 startButton.addEventListener('click', async () => {
@@ -87,6 +104,7 @@ startButton.addEventListener('click', async () => {
   }
 
   document.body.classList.add('is-running');
+  updateConnectionUi();
   timer.start();
 });
 
@@ -110,6 +128,14 @@ async function init() {
     startButton.disabled = true;
     return;
   }
+
+  // Quand un autre onglet se connecte ou se déconnecte, celui-ci se met à jour tout seul.
+  onConnectionChange(() => {
+    const before = wasLoggedIn;
+    updateConnectionUi();
+    if (!before && wasLoggedIn) message.textContent = 'Connecté à Spotify.';
+    if (before && !wasLoggedIn) message.textContent = 'La connexion à Spotify a été supprimée dans un autre onglet.';
+  });
 
   const result = await handleRedirect();
   if (result !== 'none') message.textContent = REDIRECT_MESSAGES[result];

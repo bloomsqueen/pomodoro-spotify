@@ -423,6 +423,13 @@ footer {
   text-align: center;
 }
 
+footer .footer-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.9rem;
+}
+
 footer p {
   margin: 0 auto 0.9rem;
   display: inline-block;
