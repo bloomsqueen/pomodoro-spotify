@@ -3,6 +3,8 @@
 import { SPOTIFY_CLIENT_ID, SPOTIFY_SCOPES } from './config.js';
 import { getItem, setItem, removeItem, listKeys, onChange, runExclusive } from './storage.js';
 
+const REFRESH_LOCK_HOLD_MS = 2000; // voir storage.js : le temps que les autres onglets voient les nouveaux jetons
+
 const AUTHORIZE_URL = 'https://accounts.spotify.com/authorize';
 const TOKEN_URL = 'https://accounts.spotify.com/api/token';
 
@@ -204,7 +206,7 @@ let refreshInFlight = null; // évite deux renouvellements en même temps dans c
 // à chaque utilisation, et deux onglets qui renouvellent en même temps pourraient se déconnecter l'un l'autre.
 function refreshAccessToken(options = {}) {
   if (!refreshInFlight) {
-    refreshInFlight = runExclusive('spotify-token-refresh', () => doRefresh(options)).finally(() => {
+    refreshInFlight = runExclusive('spotify-token-refresh', () => doRefresh(options), { holdMs: REFRESH_LOCK_HOLD_MS }).finally(() => {
       refreshInFlight = null;
     });
   }

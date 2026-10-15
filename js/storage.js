@@ -73,11 +73,47 @@ export function onChange(callback) {
   window.addEventListener('storage', (event) => callback(event.key));
 }
 
-// Exécute `task` en exclusivité sur tous les onglets (API Web Locks), pour que deux onglets ne fassent
-// pas la même chose en même temps. Si le navigateur ne la propose pas, on exécute simplement la tâche.
-export function runExclusive(name, task) {
-  if (typeof navigator !== 'undefined' && navigator.locks && navigator.locks.request) {
-    return navigator.locks.request(name, task);
-  }
-  return Promise.resolve().then(task);
+// --- Verrous entre onglets (API Web Locks) ---
+//
+// Un verrou fait passer les onglets un par un, mais il ne suffit pas : mesuré dans Chromium, un onglet
+// qui relit le stockage juste après l'écriture d'un autre peut encore voir l'ancienne valeur (jusqu'à
+// quelques dizaines de millisecondes plus tard). On garde donc le verrou `holdMs` après la fin de la tâche :
+// le résultat est rendu tout de suite, mais l'onglet suivant n'entre qu'une fois le stockage à jour.
+// Si le navigateur n'a pas cette API, on exécute simplement la tâche (sans protection entre onglets).
+
+const hasLocks = () => typeof navigator !== 'undefined' && navigator.locks && navigator.locks.request;
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Exécute `task` en exclusivité : les autres onglets qui demandent le même verrou attendent leur tour.
+export function runExclusive(name, task, { holdMs = 0 } = {}) {
+  if (!hasLocks()) return Promise.resolve().then(task);
+  return new Promise((resolve, reject) => {
+    navigator.locks.request(name, async () => {
+      try {
+        resolve(await task());
+      } catch (error) {
+        reject(error);
+      }
+      if (holdMs > 0) await wait(holdMs);
+    });
+  });
+}
+
+// Comme runExclusive, mais si le verrou est déjà pris, on n'attend pas : on renvoie null sans rien faire.
+export function runIfAvailable(name, task, { holdMs = 0 } = {}) {
+  if (!hasLocks()) return Promise.resolve().then(task);
+  return new Promise((resolve, reject) => {
+    navigator.locks.request(name, { ifAvailable: true }, async (lock) => {
+      if (!lock) {
+        resolve(null);
+        return;
+      }
+      try {
+        resolve(await task());
+      } catch (error) {
+        reject(error);
+      }
+      if (holdMs > 0) await wait(holdMs);
+    });
+  });
 }

@@ -41,7 +41,7 @@ Le propriétaire du dépôt construit sa **première application** et découvre 
 2. ~~Remettre la durée à 45 minutes~~ : fait.
 3. ~~Renouvellement du jeton d'accès~~ : fait (option A choisie par le propriétaire).
 4. PRD de la suite du projet : brouillon dans `PRD.md` (chaque fonctionnalité avec son **output attendu**). Décisions confirmées : D3 (connexion conservée **7 jours**) et D9 (**pas de serveur**). Les autres décisions (D1, D2, D4 à D8, D10, D11, tableau de la section 9) restent à confirmer **avant de coder la fonctionnalité concernée**.
-5. **F3 codée (15 octobre 2026), F4 en cours.** Ordre décidé : F3 puis F4 (connexion conservée, puis timer conservé avec détection d'un onglet endormi). Constat de l'essai réel du 14 octobre 2026 (navigateur Arc) : l'onglet a été déchargé, le timer et la connexion ont été perdus, et la musique n'a jamais été mise en pause, car aucun code ne tourne dans un onglet endormi. Voir la section 2 bis du `PRD.md`. Autre constat (essai avec un onglet épinglé dans Arc, 15 octobre) : la connexion à Spotify peut s'ouvrir dans une autre fenêtre, et les valeurs gardées par onglet (`sessionStorage`) ne sont pas partagées. F3 doit donc utiliser `localStorage` (jetons et valeurs temporaires de la connexion) et mettre à jour l'écran des autres onglets quand la connexion change.
+5. **F3 et F4 codées (15 octobre 2026), à tester en vrai (onglet épinglé dans Arc, rechargement en cours de session).** Ordre décidé : F3 puis F4 (connexion conservée, puis timer conservé avec détection d'un onglet endormi). Constat de l'essai réel du 14 octobre 2026 (navigateur Arc) : l'onglet a été déchargé, le timer et la connexion ont été perdus, et la musique n'a jamais été mise en pause, car aucun code ne tourne dans un onglet endormi. Voir la section 2 bis du `PRD.md`. Autre constat (essai avec un onglet épinglé dans Arc, 15 octobre) : la connexion à Spotify peut s'ouvrir dans une autre fenêtre, et les valeurs gardées par onglet (`sessionStorage`) ne sont pas partagées. F3 doit donc utiliser `localStorage` (jetons et valeurs temporaires de la connexion) et mettre à jour l'écran des autres onglets quand la connexion change.
 6. Ensuite, suivre l'ordre de la section 5 du PRD, une fonctionnalité à la fois (un commit par étape testable).
 7. ~~Mettre à jour la section « Sécurité »~~ : fait avec F3.
 
@@ -50,7 +50,8 @@ Le propriétaire du dépôt construit sa **première application** et découvre 
 - `css/style.css` : le style.
 - `js/config.js` : réglages publics (Client ID, scopes, durée du timer).
 - `js/spotify.js` : connexion OAuth PKCE (conservée 7 jours, multi-onglets), déconnexion, renouvellement du jeton, reprise et pause de la lecture, calcul de l'adresse de retour.
-- `js/storage.js` : stockage du navigateur partagé entre onglets (`localStorage`, avec repli en mémoire si le navigateur le refuse), écoute des changements des autres onglets, verrous entre onglets.
+- `js/storage.js` : stockage du navigateur partagé entre onglets (`localStorage`, avec repli en mémoire si le navigateur le refuse), écoute des changements des autres onglets, verrous entre onglets (gardés quelques secondes après la tâche : mesuré, un onglet peut relire une ancienne valeur juste après l'écriture d'un autre).
+- `js/session.js` : la session en cours (heure de fin) gardée dans le navigateur ; un seul onglet « prend en charge » la fin pour n'envoyer qu'une pause.
 - `js/timer.js` : le compte à rebours, indépendant de Spotify.
 - `js/app.js` : point d'entrée, relie la page, le timer et Spotify.
 - `PRD.md` : cahier des charges de la suite (fonctionnalités, output attendu, décisions en attente, risques).
