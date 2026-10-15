@@ -79,6 +79,7 @@ Pour chacune : l'**output attendu** (ce que la personne voit ou obtient quand ç
 - **Vérification :** pause puis reprise à plusieurs moments ; pause puis rechargement.
 
 ### F6. Enchaîner les sessions 45 / 15 / 45 / 15…
+- **Statut : codée le 15 octobre 2026**, avec les décisions **D5-A, D6-A, D7-A** (confirmées par le propriétaire). Ajouts demandés : un message d'avertissement quand l'onglet dormait pendant la pause, et « Se déconnecter » cliquable pendant une session. Garde-fou ajouté : si la pause a fini il y a plus de 15 minutes, la musique n'est pas relancée toute seule. À essayer en vrai.
 - **Output attendu :** à la fin d'une session de 45 minutes, la musique se met en pause, le timer de 15 minutes démarre et un libellé indique la phase (« Travail » ou « Pause ») et le numéro de session. Un bouton « Arrêter » met fin à l'enchaînement.
 - **Décision D5 (musique pendant la pause) :** A (recommandée) elle reste coupée ; B elle continue.
 - **Décision D6 (après la pause) :** A (recommandée) la session suivante démarre seule avec la musique, et un signal (F2) prévient ; B elle attend un clic.

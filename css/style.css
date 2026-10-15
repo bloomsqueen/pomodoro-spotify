@@ -466,15 +466,15 @@ footer p {
     animation-delay: -1.7s;
   }
 
-  /* L'égaliseur ne bouge que pendant que le timer tourne */
-  body.is-running:not(.calm) .equalizer i {
+  /* L'égaliseur ne bouge que pendant une session de travail (la musique joue), pas pendant la pause */
+  body.is-running:not(.is-break):not(.calm) .equalizer i {
     animation: bounce 0.9s ease-in-out infinite;
   }
 
-  body.is-running:not(.calm) .equalizer i:nth-child(2) { animation-delay: -0.2s; }
-  body.is-running:not(.calm) .equalizer i:nth-child(3) { animation-delay: -0.45s; }
-  body.is-running:not(.calm) .equalizer i:nth-child(4) { animation-delay: -0.1s; }
-  body.is-running:not(.calm) .equalizer i:nth-child(5) { animation-delay: -0.65s; }
+  body.is-running:not(.is-break):not(.calm) .equalizer i:nth-child(2) { animation-delay: -0.2s; }
+  body.is-running:not(.is-break):not(.calm) .equalizer i:nth-child(3) { animation-delay: -0.45s; }
+  body.is-running:not(.is-break):not(.calm) .equalizer i:nth-child(4) { animation-delay: -0.1s; }
+  body.is-running:not(.is-break):not(.calm) .equalizer i:nth-child(5) { animation-delay: -0.65s; }
 }
 
 @keyframes float {

@@ -1,7 +1,7 @@
 // Point d'entrée : relie la page (boutons, affichage), le timer et Spotify.
 // Le timer démarre la musique, et la met en pause à la fin.
 
-import { TIMER_DURATION_MINUTES } from './config.js';
+import { BREAK_DURATION_MINUTES, TIMER_DURATION_MINUTES } from './config.js';
 import { createTimer, formatTime } from './timer.js';
 import { playChime, prepareSound, resetTitle, setTitle } from './signal.js';
 import { claimSessionEnd, clearSession, onSessionChange, readSession, saveSession } from './session.js';
@@ -10,23 +10,30 @@ import {
 } from './spotify.js';
 
 const timerDisplay = document.getElementById('timer-display');
+const phaseLabel = document.getElementById('etiquette-timer');
 const startButton = document.getElementById('start-button');
+const stopButton = document.getElementById('stop-button');
 const connectButton = document.getElementById('connect-button');
 const logoutButton = document.getElementById('logout-button');
 const message = document.getElementById('message');
 
 const durationSeconds = TIMER_DURATION_MINUTES * 60;
-const durationMs = durationSeconds * 1000;
-let currentEndsAt = null; // heure de fin de la session affichée
+const workMs = durationSeconds * 1000;
+const breakMs = BREAK_DURATION_MINUTES * 60 * 1000;
+const PHASE_NAMES = { work: 'Travail', break: 'Pause' };
+const IDLE_LABEL = 'Temps restant';
+
+// La session affichée : { phase, round, durationMs, endsAt }. null quand rien ne tourne.
+let currentSession = null;
 
 const timer = createTimer({
-  durationMs,
+  durationMs: workMs,
   onTick(remainingSeconds) {
     timerDisplay.textContent = formatTime(remainingSeconds);
-    setTitle(remainingSeconds, 'Travail');
+    setTitle(remainingSeconds, PHASE_NAMES[currentSession.phase]);
   },
   onEnd() {
-    return endSession(currentEndsAt);
+    return endPhase(currentSession);
   },
 });
 
@@ -38,46 +45,151 @@ function formatAgo(ms) {
   return `il y a ${Math.round(minutes / 60)} h`;
 }
 
-// Fin d'une session : on envoie la pause à Spotify, sauf si un autre onglet s'en occupe déjà.
-// Si la page n'a pas pu réagir à l'heure (onglet fermé, endormi ou gelé), on le dit : la pause part
-// alors en retard, dès que la page est de nouveau active.
-async function endSession(endsAt) {
-  document.body.classList.remove('is-running');
-  timerDisplay.textContent = formatTime(0);
-  resetTitle();
+const formatClock = (time) => new Date(time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
-  if (!(await claimSessionEnd(endsAt))) {
-    message.textContent = 'Temps écoulé ! Un autre onglet s\'occupe de mettre Spotify en pause.';
-    updateConnectionUi();
+const LATE_AFTER_MS = 10 * 1000; // au-delà, on considère que la page n'a pas pu réagir à l'heure
+// Si la pause a fini il y a plus longtemps que ça (page endormie, ordinateur fermé…), on ne relance pas
+// la musique tout seul : la personne n'est sans doute plus devant l'écran. Elle clique sur « Démarrer ».
+const MAX_AUTO_RESTART_DELAY_MS = breakMs;
+
+// La session qui suit la session de travail `round`, ou la nouvelle session de travail qui démarre à `startsAt`.
+const breakSession = (round, endsAt) => ({ phase: 'break', round, durationMs: breakMs, endsAt });
+const workSession = (round, startsAt) => ({ phase: 'work', round, durationMs: workMs, endsAt: startsAt + workMs });
+
+// Ce que montre la page pendant une phase (et au repos quand `session` vaut null).
+function showPhase(session) {
+  document.body.classList.toggle('is-break', session !== null && session.phase === 'break');
+  phaseLabel.textContent = session ? `${PHASE_NAMES[session.phase]} · session ${session.round}` : IDLE_LABEL;
+}
+
+// On affiche une session en cours (démarrée ici, retrouvée après un rechargement, ou venue d'un autre onglet).
+function beginRunning(session) {
+  currentSession = session;
+  document.body.classList.add('is-running');
+  showPhase(session);
+  updateConnectionUi();
+  timer.start(session.endsAt);
+}
+
+// Plus rien ne tourne : on remet la page au repos.
+function goIdle() {
+  timer.stop();
+  currentSession = null;
+  document.body.classList.remove('is-running');
+  showPhase(null);
+  timerDisplay.textContent = formatTime(durationSeconds);
+  resetTitle();
+  updateConnectionUi();
+}
+
+// Une phrase honnête sur le résultat d'une commande de pause.
+function pauseSentence(result) {
+  if (result.ok) return result.already ? 'Spotify était déjà en pause.' : 'Spotify est en pause.';
+  return `Mais Spotify n'a pas pu être mis en pause : mets-le en pause toi-même. ${PLAYER_ERRORS[result.reason]}`;
+}
+
+// Fin d'une phase : un seul onglet s'en occupe (celui qui « prend en charge » la fin). Il enchaîne avec
+// la phase suivante : après le travail, la pause (musique coupée) ; après la pause, une nouvelle session de
+// travail avec la musique. Si la page n'a pas pu réagir à l'heure (onglet fermé, endormi ou gelé), on le dit.
+async function endPhase(session) {
+  if (currentSession !== session) return; // une autre session a pris la place entre-temps
+  timerDisplay.textContent = formatTime(0);
+
+  const now = Date.now();
+  const lateMs = now - session.endsAt;
+  const late = lateMs > LATE_AFTER_MS;
+
+  // Quelle est la phase suivante ? (null : on s'arrête là et la personne relancera.)
+  let next = null;
+  let breakAlreadyOver = false; // la session de travail ET la pause qui suit sont déjà finies
+  if (session.phase === 'work') {
+    const breakEnd = session.endsAt + breakMs;
+    if (breakEnd > now) next = breakSession(session.round, breakEnd);
+    else {
+      breakAlreadyOver = true;
+      if (now - breakEnd <= MAX_AUTO_RESTART_DELAY_MS) next = workSession(session.round + 1, now);
+    }
+  } else if (lateMs <= MAX_AUTO_RESTART_DELAY_MS) {
+    next = workSession(session.round + 1, now);
+  }
+
+  if (!(await claimSessionEnd(session.endsAt, next))) {
+    // Un autre onglet s'en occupe : il enregistre la suite, et cette page l'affichera en la recevant.
+    if (currentSession === session) message.textContent = 'Temps écoulé ! Un autre onglet s\'occupe de la suite.';
     return;
   }
 
-  const lateMs = Date.now() - endsAt;
-  if (lateMs <= LATE_AFTER_MS) playChime(); // un signal qui ne dépend pas de la musique ; inutile s'il arrive très en retard
-  const intro = lateMs > LATE_AFTER_MS
+  if (!late) playChime(); // un signal qui ne dépend pas de la musique ; inutile s'il arrive très en retard
+
+  if (session.phase === 'work' && !breakAlreadyOver) await finishWork(session, next, late, lateMs);
+  else if (session.phase === 'work') await restartAfterLongAbsence(session, next, lateMs);
+  else await finishBreak(session, next, late, lateMs);
+}
+
+// Fin d'une session de travail : on coupe la musique, puis la pause commence.
+async function finishWork(session, breakNext, late, lateMs) {
+  const intro = late
     ? `Ta session s'est terminée ${formatAgo(lateMs)}, pendant que la page n'était pas active.`
     : 'Temps écoulé !';
   const result = await pausePlayback();
-  message.textContent = result.ok
-    ? `${intro} ${result.already ? 'Spotify était déjà en pause.' : 'Spotify est en pause.'}`
-    : `${intro} Mais Spotify n'a pas pu être mis en pause : mets-le en pause toi-même. ${PLAYER_ERRORS[result.reason]}`;
-  updateConnectionUi();
+  beginRunning(breakNext);
+  message.textContent = `${intro} ${pauseSentence(result)} C'est la pause, jusqu'à ${formatClock(breakNext.endsAt)}.`;
 }
 
-const LATE_AFTER_MS = 10 * 1000; // au-delà, on considère que la page n'a pas pu réagir à l'heure
-
-// On affiche une session en cours (retrouvée après un rechargement, ou démarrée dans un autre onglet).
-function beginRunning(endsAt) {
-  currentEndsAt = endsAt;
-  document.body.classList.add('is-running');
-  updateConnectionUi();
-  timer.start(endsAt);
+// La session de travail et la pause sont toutes les deux finies pendant que la page n'était pas active.
+async function restartAfterLongAbsence(session, next, lateMs) {
+  const overshoot = `Ta session s'est terminée ${formatAgo(lateMs)}, pendant que la page n'était pas active : ta pause a duré plus longtemps que prévu.`;
+  if (!next) {
+    // Trop longtemps : on coupe la musique si elle joue encore, et on laisse la personne relancer.
+    const result = await pausePlayback();
+    goIdle();
+    message.textContent = `${overshoot} ${pauseSentence(result)}${result.ok || result.reason !== 'expired' ? ' Clique sur « Démarrer » quand tu veux reprendre.' : ''}`;
+    return;
+  }
+  // La musique a pu continuer pendant toute la pause : pas de pause inutile, « play » ne fera rien si elle joue.
+  await startWork(next, `${overshoot} Une nouvelle session de ${TIMER_DURATION_MINUTES} min commence maintenant.`);
 }
 
-// À l'ouverture de la page : y a-t-il une session que cette page ne connaît pas encore ?
+// Fin d'une pause : la session de travail suivante démarre toute seule, avec la musique.
+async function finishBreak(session, next, late, lateMs) {
+  if (!next) {
+    goIdle();
+    message.textContent = `Ta pause devait se terminer ${formatAgo(lateMs)}, pendant que la page n'était pas active : elle a duré plus longtemps que prévu. Clique sur « Démarrer » quand tu veux reprendre.`;
+    return;
+  }
+  await startWork(next, late
+    ? `Ta pause devait se terminer ${formatAgo(lateMs)}, mais la page n'était pas active : elle a peut-être duré plus longtemps que prévu. Une nouvelle session de ${TIMER_DURATION_MINUTES} min commence maintenant.`
+    : `La pause est finie : c'est reparti pour ${TIMER_DURATION_MINUTES} min.`);
+}
+
+// Lance la musique puis affiche la session de travail `next`, déjà enregistrée par celui qui a pris la fin en charge.
+// Si Spotify refuse, on s'arrête là et on explique pourquoi (comme au clic sur « Démarrer »).
+async function startWork(next, successMessage) {
+  const result = await resumePlayback(workMs);
+  if (!result.ok) {
+    const stored = readSession();
+    if (stored && stored.endsAt === next.endsAt) clearSession();
+    goIdle();
+    message.textContent = `La pause est finie, mais Spotify n'a pas pu lancer la musique. ${PLAYER_ERRORS[result.reason]}${result.reason === 'expired' ? '' : ' Clique ensuite sur « Démarrer ».'}`;
+    return;
+  }
+  beginRunning(next);
+  message.textContent = successMessage;
+}
+
+// À l'ouverture de la page, ou quand un autre onglet change la session : que faut-il afficher ?
 async function restoreSession({ fromOtherTab = false } = {}) {
   const session = readSession();
-  if (!session || timer.isRunning()) return;
+
+  if (!session) {
+    // La session a été arrêtée dans un autre onglet.
+    if (fromOtherTab && sessionRunning()) {
+      goIdle();
+      message.textContent = 'La session a été arrêtée dans un autre onglet.';
+    }
+    return;
+  }
+  if (currentSession && currentSession.endsAt === session.endsAt) return; // déjà affichée
 
   const now = Date.now();
   if (session.endsAt - now > session.durationMs + 60 * 1000) {
@@ -85,17 +197,23 @@ async function restoreSession({ fromOtherTab = false } = {}) {
     return;
   }
 
+  timer.stop(); // on remplace l'affichage précédent s'il y en avait un
+
   if (session.endsAt > now) {
-    beginRunning(session.endsAt);
-    if (fromOtherTab) message.textContent = 'Une session est en cours dans un autre onglet.';
-    else if (document.wasDiscarded) message.textContent = 'Ta session était en cours : on l\'a retrouvée (le navigateur avait mis l\'onglet en veille).';
-    else message.textContent = 'Ta session était en cours : on l\'a retrouvée.';
+    beginRunning(session);
+    const isBreak = session.phase === 'break';
+    if (fromOtherTab) message.textContent = isBreak ? 'Une pause est en cours dans un autre onglet.' : 'Une session est en cours dans un autre onglet.';
+    else if (document.wasDiscarded) message.textContent = `${isBreak ? 'Ta pause' : 'Ta session'} était en cours : on l'a retrouvée (le navigateur avait mis l'onglet en veille).`;
+    else message.textContent = `${isBreak ? 'Ta pause' : 'Ta session'} était en cours : on l'a retrouvée.`;
     return;
   }
 
-  // La session s'est terminée pendant que la page n'était pas là.
-  currentEndsAt = session.endsAt;
-  await endSession(session.endsAt);
+  // La phase s'est terminée pendant que la page n'était pas là.
+  currentSession = session;
+  document.body.classList.add('is-running');
+  showPhase(session);
+  updateConnectionUi();
+  await endPhase(session);
 }
 
 // Ce que l'on dit à l'utilisateur quand Spotify refuse une commande de lecture.
@@ -136,16 +254,16 @@ try {
 
 const sessionRunning = () => document.body.classList.contains('is-running');
 
-// Le bouton Démarrer n'est utilisable que si on est connecté à Spotify. « Se déconnecter » ne l'est
-// pas pendant une session : on ne pourrait plus mettre Spotify en pause à la fin.
+// Le bouton Démarrer n'est utilisable que si on est connecté à Spotify. « Se déconnecter » l'est toujours,
+// même pendant une session : c'est le moyen de tout arrêter et d'effacer ses données.
 let wasLoggedIn = false;
 
 function updateConnectionUi() {
   const loggedIn = isLoggedIn();
   connectButton.hidden = loggedIn;
   logoutButton.hidden = !loggedIn;
-  logoutButton.disabled = sessionRunning();
   startButton.disabled = !loggedIn || sessionRunning();
+  stopButton.hidden = !sessionRunning();
   wasLoggedIn = loggedIn;
 }
 
@@ -154,9 +272,14 @@ connectButton.addEventListener('click', () => {
 });
 
 logoutButton.addEventListener('click', () => {
+  const hadSession = sessionRunning();
+  timer.stop();
+  clearSession(); // plus de session : les autres onglets s'arrêtent aussi
   logout();
-  updateConnectionUi();
-  message.textContent = 'La connexion à Spotify a été supprimée de cet appareil.';
+  goIdle(); // remet la page au repos et met les boutons à jour
+  message.textContent = hadSession
+    ? 'La connexion à Spotify a été supprimée de cet appareil et la session est arrêtée. Spotify n\'a pas été mis en pause : fais-le toi-même si besoin.'
+    : 'La connexion à Spotify a été supprimée de cet appareil.';
 });
 
 startButton.addEventListener('click', async () => {
@@ -173,16 +296,29 @@ startButton.addEventListener('click', async () => {
   startButton.disabled = true;
 
   // On lance la musique d'abord : si Spotify refuse, le timer ne démarre pas et on explique pourquoi.
-  const result = await resumePlayback(durationMs);
+  const result = await resumePlayback(workMs);
   if (!result.ok) {
     message.textContent = PLAYER_ERRORS[result.reason];
     updateConnectionUi();
     return;
   }
 
-  const endsAt = Date.now() + durationMs;
-  saveSession({ endsAt, durationMs }); // gardée dans le navigateur : la session survit à un rechargement
-  beginRunning(endsAt);
+  const session = workSession(1, Date.now());
+  saveSession(session); // gardée dans le navigateur : la session survit à un rechargement
+  beginRunning(session);
+});
+
+// « Arrêter » met fin à l'enchaînement. Si la musique joue (session de travail), on la coupe.
+stopButton.addEventListener('click', async () => {
+  const session = currentSession;
+  if (!session) return;
+  stopButton.disabled = true;
+  timer.stop();
+  clearSession(); // les autres onglets s'arrêtent aussi
+  const result = session.phase === 'work' ? await pausePlayback() : null;
+  goIdle();
+  stopButton.disabled = false;
+  message.textContent = result ? `C'est arrêté. ${pauseSentence(result)}` : 'C\'est arrêté.';
 });
 
 const REDIRECT_MESSAGES = {
