@@ -55,7 +55,7 @@ async function endSession(endsAt) {
     : 'Temps écoulé !';
   const result = await pausePlayback();
   message.textContent = result.ok
-    ? `${intro} Spotify est en pause.`
+    ? `${intro} ${result.already ? 'Spotify était déjà en pause.' : 'Spotify est en pause.'}`
     : `${intro} Mais Spotify n'a pas pu être mis en pause : mets-le en pause toi-même. ${PLAYER_ERRORS[result.reason]}`;
   updateConnectionUi();
 }

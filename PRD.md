@@ -39,6 +39,7 @@ Pour chacune : l'**output attendu** (ce que la personne voit ou obtient quand ç
 - **Vérification :** essai réel (onglet caché 45 minutes, noter l'heure d'arrêt de la musique), plus un test avec horloge simulée.
 
 ### F1. Lire l'état de Spotify avant d'agir
+- **Statut : codée le 15 octobre 2026** (décision D1 : option A, confirmée par le propriétaire), vérifiée avec un faux Spotify. À essayer en vrai : mettre la musique en pause à la main avant la fin.
 - **Pourquoi :** `play` et `pause` sont deux commandes distinctes (pas de risque d'inversion), mais l'appli ne sait pas ce que fait Spotify. Si la personne a mis la musique en pause elle-même, Spotify peut refuser notre « pause » (erreur 403 « Restriction violated », d'après ma mémoire, **à vérifier**) et l'appli afficherait un message trompeur. Dans l'enchaînement des sessions (F6), un refus au démarrage pourrait même bloquer la chaîne.
 - **Output attendu :**
   - Déjà en pause à 0:00 : aucune commande envoyée, message « Spotify était déjà en pause », aucune erreur.
