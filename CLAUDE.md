@@ -52,6 +52,7 @@ Le propriétaire du dépôt construit sa **première application** et découvre 
 - `js/spotify.js` : connexion OAuth PKCE (conservée 7 jours, multi-onglets), déconnexion, renouvellement du jeton, reprise et pause de la lecture, calcul de l'adresse de retour.
 - `js/storage.js` : stockage du navigateur partagé entre onglets (`localStorage`, avec repli en mémoire si le navigateur le refuse), écoute des changements des autres onglets, verrous entre onglets (gardés quelques secondes après la tâche : mesuré, un onglet peut relire une ancienne valeur juste après l'écriture d'un autre).
 - `js/session.js` : la session en cours (heure de fin) gardée dans le navigateur ; un seul onglet « prend en charge » la fin pour n'envoyer qu'une pause.
+- `js/signal.js` : titre de l'onglet et petit carillon (Web Audio) à la fin d'une phase.
 - `js/timer.js` : le compte à rebours, indépendant de Spotify.
 - `js/app.js` : point d'entrée, relie la page, le timer et Spotify.
 - `PRD.md` : cahier des charges de la suite (fonctionnalités, output attendu, décisions en attente, risques).

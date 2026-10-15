@@ -3,6 +3,7 @@
 
 import { TIMER_DURATION_MINUTES } from './config.js';
 import { createTimer, formatTime } from './timer.js';
+import { playChime, prepareSound, resetTitle, setTitle } from './signal.js';
 import { claimSessionEnd, clearSession, onSessionChange, readSession, saveSession } from './session.js';
 import {
   handleRedirect, isLoggedIn, login, logout, onConnectionChange, pausePlayback, redirectUriProblem, resumePlayback,
@@ -22,6 +23,7 @@ const timer = createTimer({
   durationMs,
   onTick(remainingSeconds) {
     timerDisplay.textContent = formatTime(remainingSeconds);
+    setTitle(remainingSeconds, 'Travail');
   },
   onEnd() {
     return endSession(currentEndsAt);
@@ -42,6 +44,7 @@ function formatAgo(ms) {
 async function endSession(endsAt) {
   document.body.classList.remove('is-running');
   timerDisplay.textContent = formatTime(0);
+  resetTitle();
 
   if (!(await claimSessionEnd(endsAt))) {
     message.textContent = 'Temps écoulé ! Un autre onglet s\'occupe de mettre Spotify en pause.';
@@ -50,6 +53,7 @@ async function endSession(endsAt) {
   }
 
   const lateMs = Date.now() - endsAt;
+  if (lateMs <= LATE_AFTER_MS) playChime(); // un signal qui ne dépend pas de la musique ; inutile s'il arrive très en retard
   const intro = lateMs > LATE_AFTER_MS
     ? `Ta session s'est terminée ${formatAgo(lateMs)}, pendant que la page n'était pas active.`
     : 'Temps écoulé !';
@@ -157,6 +161,7 @@ logoutButton.addEventListener('click', () => {
 
 startButton.addEventListener('click', async () => {
   message.textContent = '';
+  prepareSound();
 
   // Une session tourne déjà (dans un autre onglet, par exemple) : on ne la double pas.
   const existing = readSession();
@@ -185,6 +190,9 @@ const REDIRECT_MESSAGES = {
   denied: 'Connexion refusée. L\'appli a besoin de ton accord pour contrôler la lecture.',
   error: 'La connexion à Spotify a échoué. Réessaie.',
 };
+
+// Après un rechargement, le son n'est autorisé qu'après un premier geste : on le prépare dès qu'il y en a un.
+for (const gesture of ['pointerdown', 'keydown']) document.addEventListener(gesture, prepareSound, { once: true });
 
 async function init() {
   timerDisplay.textContent = formatTime(durationSeconds);

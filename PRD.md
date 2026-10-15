@@ -50,6 +50,7 @@ Pour chacune : l'**output attendu** (ce que la personne voit ou obtient quand ç
 - **Décision D1 :** A (recommandée) lire l'état avant d'agir ; B ne rien lire et traiter tout refus « déjà dans l'état demandé » comme un succès (plus simple, mais cache de vraies erreurs).
 
 ### F2. Signal de fin indépendant de la musique
+- **Statut : codée le 15 octobre 2026** (décision D2 : option A, pas de notification du navigateur pour l'instant). Titre de l'onglet « 12:34 · Travail » et carillon à chaque fin de phase. Limite : les navigateurs peuvent n'actualiser le titre d'un onglet caché qu'une fois par minute, et le son demande un premier clic sur la page (après un rechargement sans clic, il peut être refusé).
 - **Pourquoi :** la coupure de la musique sert de signal. Si elle est déjà coupée, ou si la personne écoute de la musique pendant la pause, elle peut manquer la fin d'une phase.
 - **Output attendu :** à chaque changement de phase, un court son (généré par le navigateur, sans fichier) et le titre de l'onglet indique la phase et le temps restant (par exemple « 12:34 · Travail »).
 - **Option, décision D2 :** notification du navigateur en plus (demande une autorisation à la personne). A (recommandée) non pour l'instant ; B oui.
