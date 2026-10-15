@@ -19,6 +19,7 @@ Le propriétaire du dépôt construit sa **première application** et découvre 
 ## Décisions prises
 - Type d'application : **appli web sans backend**.
 - Déroulé du MVP : un seul timer fixe de 45 minutes. La musique démarre automatiquement avec le timer. Pas de phase de pause ni de reprise de la musique : pour recommencer, l'utilisateur relance un timer.
+- **Aucun serveur ne stocke les jetons Spotify** (décision du propriétaire, 15 octobre 2026) : trop risqué pour la sécurité dès qu'il y aura plusieurs utilisateurs. La pause de 0:00 repose donc sur le navigateur ; voir ses limites dans la section 2 bis de `PRD.md`.
 - Services de musique : **Spotify uniquement**. Apple Music et Deezer sont hors périmètre pour l'instant (évalués le 14 octobre 2026, voir la section 10 de `PRD.md`). Le contrôle de la musique est au cœur du produit.
 - Playlist : pas de choix de playlist dans le MVP. L'appli reprend la lecture en cours dans l'appli Spotify de l'utilisateur.
 - Adresse de retour de la connexion : calculée à partir de l'adresse où l'appli est ouverte (`getRedirectUri` dans `js/spotify.js`), donc la même appli marche en local et en ligne. Chaque adresse doit être déclarée à l'identique dans le Dashboard Spotify (Settings, puis Redirect URIs) : `http://127.0.0.1:8000/` en local, `https://pomodoro-spotify.tela-mellies.workers.dev/` en ligne. Spotify refuse `localhost` et le http hors 127.0.0.1 : l'appli l'explique au lieu de tenter la connexion.
@@ -38,7 +39,7 @@ Le propriétaire du dépôt construit sa **première application** et découvre 
 1. ~~Retours sur le design de l'accueil~~ : validé par le propriétaire.
 2. ~~Remettre la durée à 45 minutes~~ : fait.
 3. ~~Renouvellement du jeton d'accès~~ : fait (option A choisie par le propriétaire).
-4. PRD de la suite du projet : brouillon dans `PRD.md` (chaque fonctionnalité avec son **output attendu**). Décision D3 confirmée (connexion conservée **7 jours**). Les autres décisions (D1, D2, D4 à D9, tableau de la section 9) restent à confirmer **avant de coder la fonctionnalité concernée**.
+4. PRD de la suite du projet : brouillon dans `PRD.md` (chaque fonctionnalité avec son **output attendu**). Décisions confirmées : D3 (connexion conservée **7 jours**) et D9 (**pas de serveur**). Les autres décisions (D1, D2, D4 à D8, tableau de la section 9) restent à confirmer **avant de coder la fonctionnalité concernée**.
 5. **Prochaine session : commencer par F3 puis F4** (connexion conservée, puis timer conservé avec détection d'un onglet endormi). Constat de l'essai réel du 14 octobre 2026 (navigateur Arc) : l'onglet a été déchargé, le timer et la connexion ont été perdus, et la musique n'a jamais été mise en pause, car aucun code ne tourne dans un onglet endormi. Voir la section 2 bis du `PRD.md`.
 6. Ensuite, suivre l'ordre de la section 5 du PRD, une fonctionnalité à la fois (un commit par étape testable).
 7. Quand F3 sera codée, mettre à jour la section « Sécurité » (les jetons ne resteront plus seulement dans l'onglet).
