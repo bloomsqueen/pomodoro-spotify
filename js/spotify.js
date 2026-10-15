@@ -275,10 +275,10 @@ async function getAccessToken(minLifetimeMs = 0) {
 
 const API_URL = 'https://api.spotify.com/v1';
 
-async function sendPlayerCommand(path, accessToken) {
+async function sendApiRequest(method, path, accessToken) {
   try {
     return await fetch(`${API_URL}${path}`, {
-      method: 'PUT',
+      method,
       headers: { Authorization: `Bearer ${accessToken}` },
     });
   } catch {
@@ -286,42 +286,76 @@ async function sendPlayerCommand(path, accessToken) {
   }
 }
 
-// Envoie une commande de lecture à Spotify.
+// Envoie une requête à l'API Spotify avec un jeton valable, en le renouvelant si besoin.
 // `minLifetimeMs` : durée pendant laquelle le jeton doit encore être valable (voir resumePlayback).
-// Renvoie { ok: true } ou { ok: false, reason } avec reason parmi :
-// 'expired', 'no-device', 'premium', 'forbidden', 'rate-limit', 'network', 'error'.
-async function playerCommand(path, minLifetimeMs = 0) {
+// Renvoie { response } ou { reason } avec reason parmi 'expired' ou 'network'.
+// Le code de la réponse (200, 204, 403…) n'est pas interprété ici : c'est le travail de l'appelant.
+async function callApi(method, path, minLifetimeMs = 0) {
   const auth = await getAccessToken(minLifetimeMs);
-  if (!auth.accessToken) return { ok: false, reason: auth.reason };
+  if (!auth.accessToken) return { reason: auth.reason };
 
-  let response = await sendPlayerCommand(path, auth.accessToken);
-  if (!response) return { ok: false, reason: 'network' };
+  let response = await sendApiRequest(method, path, auth.accessToken);
+  if (!response) return { reason: 'network' };
 
   // Jeton refusé alors qu'on le croyait valable (révoqué, horloge décalée) : un nouvel essai avec un jeton neuf.
   if (response.status === 401) {
     const renewed = await refreshAccessToken({ rejectedToken: auth.accessToken });
-    if (!renewed.accessToken) return { ok: false, reason: renewed.reason };
-    response = await sendPlayerCommand(path, renewed.accessToken);
-    if (!response) return { ok: false, reason: 'network' };
+    if (!renewed.accessToken) return { reason: renewed.reason };
+    response = await sendApiRequest(method, path, renewed.accessToken);
+    if (!response) return { reason: 'network' };
     if (response.status === 401) {
       removeItem(KEY_TOKENS);
-      return { ok: false, reason: 'expired' };
+      return { reason: 'expired' };
     }
   }
+  return { response };
+}
 
+// Envoie une commande de lecture à Spotify.
+// Renvoie { ok: true } ou { ok: false, reason } avec reason parmi :
+// 'expired', 'no-device', 'premium', 'forbidden', 'rate-limit', 'network', 'error'.
+async function playerCommand(path, minLifetimeMs = 0) {
+  const { response, reason } = await callApi('PUT', path, minLifetimeMs);
+  if (!response) return { ok: false, reason };
   if (response.ok) return { ok: true }; // Spotify répond 204 : fait, rien à lire
-  return { ok: false, reason: await explainFailure(response) };
+  const failure = await explainFailure(response);
+  if (failure === 'already') return { ok: true, already: true };
+  return { ok: false, reason: failure };
+}
+
+// Lit l'état de la lecture : { ok: true, playing } (true si de la musique joue), ou { ok: false, reason }.
+// Spotify répond 204 (sans contenu) quand aucun appareil n'est actif : rien ne joue, donc playing = false.
+async function readPlaybackState(minLifetimeMs = 0) {
+  const { response, reason } = await callApi('GET', '/me/player', minLifetimeMs);
+  if (!response) return { ok: false, reason };
+  if (response.status === 204) return { ok: true, playing: false };
+  if (!response.ok) {
+    const failure = await explainFailure(response);
+    return { ok: false, reason: failure === 'already' ? 'error' : failure };
+  }
+  try {
+    const state = await response.json();
+    return { ok: true, playing: state.is_playing === true };
+  } catch {
+    return { ok: false, reason: 'error' };
+  }
 }
 
 async function explainFailure(response) {
   if (response.status === 429) return 'rate-limit';
 
   let apiReason = '';
+  let apiMessage = '';
   try {
-    apiReason = (await response.json()).error?.reason ?? '';
+    const error = (await response.json()).error;
+    apiReason = error?.reason ?? '';
+    apiMessage = error?.message ?? '';
   } catch {
     // Pas de détail lisible : on se fie au code de la réponse.
   }
+  // « Restriction violated » : la commande demandée ne change rien (play alors que ça joue déjà, pause alors
+  // que c'est déjà en pause). Ce n'est pas un refus d'accès : l'état voulu est déjà atteint.
+  if (response.status === 403 && /restriction violated/i.test(apiMessage)) return 'already';
   if (response.status === 404 || apiReason === 'NO_ACTIVE_DEVICE') return 'no-device';
   if (apiReason === 'PREMIUM_REQUIRED') return 'premium';
   if (response.status === 403) return 'forbidden';
@@ -329,12 +363,21 @@ async function explainFailure(response) {
 }
 
 // Reprend la lecture en cours sur l'appareil actif (sans corps : on ne choisit pas de playlist).
+// On regarde d'abord l'état : si la musique joue déjà, on n'envoie rien (renvoie alors { ok: true, already: true }).
+// Si l'état est illisible, on envoie quand même la commande : c'est elle qui dira la vraie raison d'un échec.
 // `sessionMs` : durée prévue de la session. Si le jeton ne tiendra pas jusque-là, on le renouvelle
 // tout de suite, pour que la pause de la fin n'ait pas à le faire au dernier moment.
-export function resumePlayback(sessionMs = 0) {
+export async function resumePlayback(sessionMs = 0) {
+  // Même si on n'envoie rien, le jeton est renouvelé ici si besoin : la pause de la fin en dépendra.
+  const state = await readPlaybackState(sessionMs);
+  if (state.ok && state.playing) return { ok: true, already: true };
   return playerCommand('/me/player/play', sessionMs);
 }
 
-export function pausePlayback() {
+// Met la lecture en pause. Si rien ne joue (pause faite à la main, aucun appareil actif),
+// on n'envoie rien : renvoie { ok: true, already: true }, sans fausse erreur.
+export async function pausePlayback() {
+  const state = await readPlaybackState();
+  if (state.ok && !state.playing) return { ok: true, already: true };
   return playerCommand('/me/player/pause');
 }

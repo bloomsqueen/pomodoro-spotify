@@ -39,6 +39,7 @@ Pour chacune : l'**output attendu** (ce que la personne voit ou obtient quand ç
 - **Vérification :** essai réel (onglet caché 45 minutes, noter l'heure d'arrêt de la musique), plus un test avec horloge simulée.
 
 ### F1. Lire l'état de Spotify avant d'agir
+- **Statut : codée le 15 octobre 2026** (décision D1 : option A, confirmée par le propriétaire), vérifiée avec un faux Spotify. À essayer en vrai : mettre la musique en pause à la main avant la fin.
 - **Pourquoi :** `play` et `pause` sont deux commandes distinctes (pas de risque d'inversion), mais l'appli ne sait pas ce que fait Spotify. Si la personne a mis la musique en pause elle-même, Spotify peut refuser notre « pause » (erreur 403 « Restriction violated », d'après ma mémoire, **à vérifier**) et l'appli afficherait un message trompeur. Dans l'enchaînement des sessions (F6), un refus au démarrage pourrait même bloquer la chaîne.
 - **Output attendu :**
   - Déjà en pause à 0:00 : aucune commande envoyée, message « Spotify était déjà en pause », aucune erreur.
@@ -49,6 +50,7 @@ Pour chacune : l'**output attendu** (ce que la personne voit ou obtient quand ç
 - **Décision D1 :** A (recommandée) lire l'état avant d'agir ; B ne rien lire et traiter tout refus « déjà dans l'état demandé » comme un succès (plus simple, mais cache de vraies erreurs).
 
 ### F2. Signal de fin indépendant de la musique
+- **Statut : codée le 15 octobre 2026** (décision D2 : option A, pas de notification du navigateur pour l'instant). Titre de l'onglet « 12:34 · Travail » et carillon à chaque fin de phase. Limite : les navigateurs peuvent n'actualiser le titre d'un onglet caché qu'une fois par minute, et le son demande un premier clic sur la page (après un rechargement sans clic, il peut être refusé).
 - **Pourquoi :** la coupure de la musique sert de signal. Si elle est déjà coupée, ou si la personne écoute de la musique pendant la pause, elle peut manquer la fin d'une phase.
 - **Output attendu :** à chaque changement de phase, un court son (généré par le navigateur, sans fichier) et le titre de l'onglet indique la phase et le temps restant (par exemple « 12:34 · Travail »).
 - **Option, décision D2 :** notification du navigateur en plus (demande une autorisation à la personne). A (recommandée) non pour l'instant ; B oui.
@@ -77,6 +79,7 @@ Pour chacune : l'**output attendu** (ce que la personne voit ou obtient quand ç
 - **Vérification :** pause puis reprise à plusieurs moments ; pause puis rechargement.
 
 ### F6. Enchaîner les sessions 45 / 15 / 45 / 15…
+- **Statut : codée le 15 octobre 2026**, avec les décisions **D5-A, D6-A, D7-A** (confirmées par le propriétaire). Ajouts demandés : un message d'avertissement quand l'onglet dormait pendant la pause, et « Se déconnecter » cliquable pendant une session. Garde-fou ajouté : si la pause a fini il y a plus de 15 minutes, la musique n'est pas relancée toute seule. À essayer en vrai.
 - **Output attendu :** à la fin d'une session de 45 minutes, la musique se met en pause, le timer de 15 minutes démarre et un libellé indique la phase (« Travail » ou « Pause ») et le numéro de session. Un bouton « Arrêter » met fin à l'enchaînement.
 - **Décision D5 (musique pendant la pause) :** A (recommandée) elle reste coupée ; B elle continue.
 - **Décision D6 (après la pause) :** A (recommandée) la session suivante démarre seule avec la musique, et un signal (F2) prévient ; B elle attend un clic.

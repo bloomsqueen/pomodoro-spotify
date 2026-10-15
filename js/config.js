@@ -13,4 +13,5 @@ export const SPOTIFY_SCOPES = [
   'user-modify-playback-state',
 ];
 
-export const TIMER_DURATION_MINUTES = 45; // durée fixe pour le MVP
+export const TIMER_DURATION_MINUTES = 45; // durée fixe d'une session de travail
+export const BREAK_DURATION_MINUTES = 15; // durée fixe de la pause qui suit
