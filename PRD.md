@@ -120,6 +120,22 @@ Trois niveaux, du plus simple au plus complexe (voir la section 7 pour l'évalua
 - **Complexité :** élevée.
 - **Décision D11 :** A (recommandée) en réserve : on y revient seulement si F3, F4 et F9 ne suffisent pas à l'usage ; B la lancer dès maintenant.
 
+### F11. Fenêtre « pomodoro.exe » déplaçable à la souris (idée d'un utilisateur, à évaluer)
+- **Output attendu :** je peux attraper la barre de titre de la fenêtre et la déplacer sur la page, comme une vieille fenêtre Windows.
+- **À prévoir :** utilisable aussi au clavier et au doigt (accessibilité obligatoire), ne jamais faire sortir la fenêtre de l'écran, et respecter le réglage « Animations ». Position non retenue après rechargement, sauf décision contraire.
+- **Complexité :** faible à moyenne. **Pas de décision prise.**
+
+### F12. Boutons de la barre de titre cliquables (idée d'un utilisateur, à évaluer)
+- **Output attendu :** les trois petits carrés de la barre de titre (aujourd'hui décoratifs) deviennent de vrais boutons : agrandir, réduire, et une fenêtre pop-up.
+- **Questions à trancher avant de coder :** que fait « réduire » (cacher le contenu, ne garder que le timer) ? Que contient la pop-up (explication, réglages, « à propos ») ? « Agrandir » sert à quoi sur une page qui tient déjà à l'écran ? Chaque bouton cliquable doit avoir un nom lisible par les lecteurs d'écran et rester utilisable au clavier.
+- **Lien :** la pop-up pourrait porter l'explication de F13.
+- **Complexité :** moyenne. **Pas de décision prise.**
+
+### F13. Explication simple de ce qu'est un pomodoro (idée d'un utilisateur, à évaluer)
+- **Output attendu :** une explication courte et claire de la méthode (travailler 45 minutes, puis 15 minutes de pause, et recommencer), pour quelqu'un qui découvre.
+- **À arbitrer :** le design validé est volontairement très simple et le propriétaire a retiré les textes explicatifs de la page. L'explication serait donc **cachée par défaut** (pop-up de F12, ou un petit lien « C'est quoi un pomodoro ? »), pas affichée en permanence.
+- **Complexité :** faible. **Pas de décision prise.**
+
 ## 5. Ordre de réalisation recommandé
 **Prochaine session : commencer par F3 puis F4** (décision du propriétaire, après l'essai réel du 14 octobre).
 1. F3 : connexion conservée (7 jours).
@@ -133,6 +149,7 @@ Trois niveaux, du plus simple au plus complexe (voir la section 7 pour l'évalua
 9. ~~F8~~ : écartée (D9).
 10. F9 : d'abord des essais sans code, juste après F4, pour décider si du code est utile (D10).
 11. F10 : en réserve (D11).
+12. F11, F12, F13 : idées d'utilisateurs (novembre 2026), à évaluer plus tard ; F13 d'abord si on veut le plus simple.
 
 ## 6. Hors périmètre
 - Durées réglables par l'utilisateur (le README les classe hors périmètre).
