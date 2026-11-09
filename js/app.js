@@ -85,7 +85,7 @@ function goIdle() {
 // Une phrase honnête sur le résultat d'une commande de pause.
 function pauseSentence(result) {
   if (result.ok) return result.already ? 'Spotify était déjà en pause.' : 'Spotify est en pause.';
-  return `Mais Spotify n'a pas pu être mis en pause : mets-le en pause toi-même. ${PLAYER_ERRORS[result.reason]}`;
+  return `Mais Spotify n'a pas pu être mis en pause : mets-le en pause toi-même. ${explainError(result)}`;
 }
 
 // Fin d'une phase : un seul onglet s'en occupe (celui qui « prend en charge » la fin). Il enchaîne avec
@@ -170,7 +170,7 @@ async function startWork(next, successMessage) {
     const stored = readSession();
     if (stored && stored.endsAt === next.endsAt) clearSession();
     goIdle();
-    message.textContent = `La pause est finie, mais Spotify n'a pas pu lancer la musique. ${PLAYER_ERRORS[result.reason]}${result.reason === 'expired' ? '' : ' Clique ensuite sur « Démarrer ».'}`;
+    message.textContent = `La pause est finie, mais Spotify n'a pas pu lancer la musique. ${explainError(result)}${result.reason === 'expired' ? '' : ' Clique ensuite sur « Démarrer ».'}`;
     return;
   }
   beginRunning(next);
@@ -221,11 +221,19 @@ const PLAYER_ERRORS = {
   'no-device': 'Aucun appareil Spotify actif. Ouvre Spotify sur un de tes appareils et lance un morceau une fois, puis réessaie.',
   premium: 'Contrôler la lecture demande un compte Spotify Premium.',
   expired: 'Ta connexion à Spotify a expiré. Reconnecte-toi.',
-  forbidden: 'Spotify refuse l\'accès. Ton compte doit être ajouté à la liste des utilisateurs de l\'appli dans le Dashboard Spotify.',
+  forbidden: 'Spotify refuse l\'accès. Ton compte n\'est sans doute pas encore autorisé : demande à la personne qui a créé l\'appli de t\'ajouter à sa liste d\'utilisateurs, puis reconnecte-toi.',
   'rate-limit': 'Spotify reçoit trop de requêtes. Attends un instant, puis réessaie.',
   network: 'Impossible de joindre Spotify. Vérifie ta connexion internet.',
   error: 'Spotify a répondu par une erreur inattendue. Réessaie.',
 };
+
+// Le texte pour la personne, avec la réponse exacte de Spotify quand elle aide à comprendre un refus.
+function explainError(result) {
+  const text = PLAYER_ERRORS[result.reason];
+  return result.detail && (result.reason === 'forbidden' || result.reason === 'error')
+    ? `${text} (Réponse de Spotify : « ${result.detail} »)`
+    : text;
+}
 
 // Bouton « Animations » : permet de couper les animations décoratives (en plus du réglage du système).
 const motionToggle = document.getElementById('motion-toggle');
@@ -298,7 +306,7 @@ startButton.addEventListener('click', async () => {
   // On lance la musique d'abord : si Spotify refuse, le timer ne démarre pas et on explique pourquoi.
   const result = await resumePlayback(workMs);
   if (!result.ok) {
-    message.textContent = PLAYER_ERRORS[result.reason];
+    message.textContent = explainError(result);
     updateConnectionUi();
     return;
   }

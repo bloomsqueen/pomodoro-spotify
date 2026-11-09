@@ -79,7 +79,7 @@ Le propriétaire du dépôt construit sa **première application** et découvre 
 ## Mise en ligne
 - Site publié avec Cloudflare (adresse `https://pomodoro-spotify.tela-mellies.workers.dev/`), à partir de la branche `main` : rien n'est en ligne tant que le travail n'est pas fusionné dans `main`.
 - Pas de commande de build : les fichiers du dépôt sont servis tels quels.
-- Mode développement de l'appli Spotify : 5 utilisateurs maximum, ajoutés à la main dans le Dashboard, et le propriétaire doit avoir un compte Premium.
+- Mode développement de l'appli Spotify : 5 utilisateurs maximum, ajoutés à la main dans le Dashboard, et le propriétaire doit avoir un compte Premium. Spotify réserve aujourd'hui le mode « Extended Quota » (sans limite d'utilisateurs) à des organisations (entreprise enregistrée, environ 250 000 utilisateurs actifs par mois ; d'après des sources secondaires, à revérifier sur la page officielle). Une personne non ajoutée peut se connecter, mais Spotify refuse ensuite chaque commande (403) : l'appli lui dit de demander à être ajoutée et affiche la réponse exacte de Spotify.
 
 ## Sécurité
 - Aucun secret dans le dépôt. L'appli n'en a pas besoin : le Client ID est public par conception (PKCE) et vit dans `js/config.js`. Il n'y a pas de Client Secret, et il ne faut jamais en ajouter.

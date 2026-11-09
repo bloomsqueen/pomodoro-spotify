@@ -170,6 +170,8 @@ Ce que permet l'API Spotify, d'après sa documentation :
 Recommandation : réaliser F7 après F6, car tout dépend des phases et de la lecture de l'état (F1). Commencer par F7a si le besoin se confirme, puis F7c avec un lien collé (sans autorisation supplémentaire), et laisser F7b en option.
 
 ## 8. Risques et points à vérifier par un essai réel
+
+- **Limite de 5 utilisateurs de Spotify (constatée en novembre 2026)** : l'appli est en mode développement, donc seules 5 personnes ajoutées à la main dans le Dashboard peuvent s'en servir. Le mode sans limite est réservé à des organisations. Une personne non ajoutée se connecte sans erreur, puis chaque commande est refusée (403) : le message d'erreur le dit maintenant. Pistes éventuelles : détecter le refus dès la connexion (F-à-décider) ou changer de service (voir la section 10).
 - **Onglet endormi ou déchargé par le navigateur** (constaté avec Arc le 14 octobre) : aucun code ne tourne, la pause n'est pas envoyée. Atténué par F3 et F4 (récupération au retour). La solution par serveur est écartée (D9).
 - **Onglet en arrière-plan ralenti** (F0) : mesurer l'heure réelle d'arrêt de la musique.
 - **Refus de Spotify quand le lecteur est déjà dans l'état demandé** (F1) : essai réel avec un timer court (pause manuelle avant la fin, puis lecture manuelle avant le démarrage).
