@@ -120,6 +120,22 @@ Trois niveaux, du plus simple au plus complexe (voir la section 7 pour l'évalua
 - **Complexité :** élevée.
 - **Décision D11 :** A (recommandée) en réserve : on y revient seulement si F3, F4 et F9 ne suffisent pas à l'usage ; B la lancer dès maintenant.
 
+### F11. Fenêtre « pomodoro.exe » déplaçable à la souris (idée d'un utilisateur, à évaluer)
+- **Output attendu :** je peux attraper la barre de titre de la fenêtre et la déplacer sur la page, comme une vieille fenêtre Windows.
+- **À prévoir :** utilisable aussi au clavier et au doigt (accessibilité obligatoire), ne jamais faire sortir la fenêtre de l'écran, et respecter le réglage « Animations ». Position non retenue après rechargement, sauf décision contraire.
+- **Complexité :** faible à moyenne. **Pas de décision prise.**
+
+### F12. Boutons de la barre de titre cliquables (idée d'un utilisateur, à évaluer)
+- **Output attendu :** les trois petits carrés de la barre de titre (aujourd'hui décoratifs) deviennent de vrais boutons : agrandir, réduire, et une fenêtre pop-up.
+- **Questions à trancher avant de coder :** que fait « réduire » (cacher le contenu, ne garder que le timer) ? Que contient la pop-up (explication, réglages, « à propos ») ? « Agrandir » sert à quoi sur une page qui tient déjà à l'écran ? Chaque bouton cliquable doit avoir un nom lisible par les lecteurs d'écran et rester utilisable au clavier.
+- **Lien :** la pop-up pourrait porter l'explication de F13.
+- **Complexité :** moyenne. **Pas de décision prise.**
+
+### F13. Explication simple de ce qu'est un pomodoro (idée d'un utilisateur, à évaluer)
+- **Output attendu :** une explication courte et claire de la méthode (travailler 45 minutes, puis 15 minutes de pause, et recommencer), pour quelqu'un qui découvre.
+- **À arbitrer :** le design validé est volontairement très simple et le propriétaire a retiré les textes explicatifs de la page. L'explication serait donc **cachée par défaut** (pop-up de F12, ou un petit lien « C'est quoi un pomodoro ? »), pas affichée en permanence.
+- **Complexité :** faible. **Pas de décision prise.**
+
 ## 5. Ordre de réalisation recommandé
 **Prochaine session : commencer par F3 puis F4** (décision du propriétaire, après l'essai réel du 14 octobre).
 1. F3 : connexion conservée (7 jours).
@@ -133,6 +149,7 @@ Trois niveaux, du plus simple au plus complexe (voir la section 7 pour l'évalua
 9. ~~F8~~ : écartée (D9).
 10. F9 : d'abord des essais sans code, juste après F4, pour décider si du code est utile (D10).
 11. F10 : en réserve (D11).
+12. F11, F12, F13 : idées d'utilisateurs (novembre 2026), à évaluer plus tard ; F13 d'abord si on veut le plus simple.
 
 ## 6. Hors périmètre
 - Durées réglables par l'utilisateur (le README les classe hors périmètre).
@@ -153,6 +170,8 @@ Ce que permet l'API Spotify, d'après sa documentation :
 Recommandation : réaliser F7 après F6, car tout dépend des phases et de la lecture de l'état (F1). Commencer par F7a si le besoin se confirme, puis F7c avec un lien collé (sans autorisation supplémentaire), et laisser F7b en option.
 
 ## 8. Risques et points à vérifier par un essai réel
+
+- **Limite de 5 utilisateurs de Spotify (constatée en novembre 2026)** : l'appli est en mode développement, donc seules 5 personnes ajoutées à la main dans le Dashboard peuvent s'en servir. Le mode sans limite est réservé à des organisations. Une personne non ajoutée se connecte sans erreur, puis chaque commande est refusée (403) : le message d'erreur le dit maintenant. Pistes éventuelles : détecter le refus dès la connexion (F-à-décider) ou changer de service (voir la section 10).
 - **Onglet endormi ou déchargé par le navigateur** (constaté avec Arc le 14 octobre) : aucun code ne tourne, la pause n'est pas envoyée. Atténué par F3 et F4 (récupération au retour). La solution par serveur est écartée (D9).
 - **Onglet en arrière-plan ralenti** (F0) : mesurer l'heure réelle d'arrêt de la musique.
 - **Refus de Spotify quand le lecteur est déjà dans l'état demandé** (F1) : essai réel avec un timer court (pause manuelle avant la fin, puis lecture manuelle avant le démarrage).
@@ -191,3 +210,22 @@ Décision : **hors périmètre pour l'instant.** Ce qui suit évite de refaire l
 - Non vérifié : la documentation du SDK et la création d'application sont derrière une connexion à un compte Deezer. Impossible de dire si de nouvelles applications peuvent encore être créées, ni comment piloter la lecture. Les conditions d'utilisation semblent anciennes.
 
 **Si la question revient :** se connecter sur developers.deezer.com pour vérifier que la création d'application est ouverte ; vérifier auprès d'Apple si un compte développeur payant est requis ; puis chiffrer le travail de réorganisation autour d'un « fournisseur de musique ».
+
+## 11. YouTube comme deuxième service de musique (idée évaluée le 9 novembre 2026, pas décidée)
+Décision : **en réserve.** Spotify reste le service du produit. Ce qui suit vient de ma connaissance de YouTube, **sans essai réel** : à vérifier avant de s'engager.
+
+**Pourquoi y penser.** Spotify limite l'appli à 5 utilisateurs ajoutés à la main (voir la section 8) et réserve le mode sans limite à des organisations. Avec un lecteur YouTube intégré, il n'y aurait ni connexion, ni jeton, ni liste d'utilisateurs, ni compte Premium à exiger : n'importe qui pourrait s'en servir.
+
+**La différence de fond (la même que pour Apple Music et Deezer, section 10).** YouTube ne permet pas de contrôler l'appli YouTube ou YouTube Music de la personne. Ce qui existe : un lecteur YouTube intégré dans la page, piloté par du code. La page devient le lecteur, pas une télécommande.
+
+**Contraintes probables.**
+- Plus de « reprise de la lecture en cours » : la personne doit coller le lien d'une vidéo ou d'une playlist (cela touche à la décision « pas de choix de playlist »).
+- Publicités, sauf abonnement YouTube Premium de la personne.
+- La lecture automatique peut être bloquée par le navigateur, surtout au redémarrage après la pause (F6).
+- Certaines vidéos refusent l'intégration.
+- La musique s'arrête si l'onglet est fermé ; à vérifier : ce qui se passe si l'onglet est caché ou endormi (F4, F9).
+- Un script externe serait chargé depuis YouTube, ce qui irait contre la règle « aucune dépendance externe » (comme MusicKit pour Apple Music).
+
+**Impact sur le code.** Il faudrait réorganiser l'appli autour d'un « fournisseur de musique » (Spotify ou YouTube) avec les mêmes opérations : lancer, mettre en pause, lire l'état. F1, F4, F6 en dépendent.
+
+**Si la question revient :** décider d'abord si le contrôle de la musique de l'utilisateur reste au cœur du produit (décision du propriétaire) ; puis un petit essai jetable (une page avec un lecteur YouTube qui se met en pause à la fin d'un timer, onglet caché pendant 45 minutes, dans Arc).

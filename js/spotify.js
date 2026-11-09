@@ -319,8 +319,8 @@ async function playerCommand(path, minLifetimeMs = 0) {
   if (!response) return { ok: false, reason };
   if (response.ok) return { ok: true }; // Spotify répond 204 : fait, rien à lire
   const failure = await explainFailure(response);
-  if (failure === 'already') return { ok: true, already: true };
-  return { ok: false, reason: failure };
+  if (failure.reason === 'already') return { ok: true, already: true };
+  return { ok: false, ...failure };
 }
 
 // Lit l'état de la lecture : { ok: true, playing } (true si de la musique joue), ou { ok: false, reason }.
@@ -331,7 +331,7 @@ async function readPlaybackState(minLifetimeMs = 0) {
   if (response.status === 204) return { ok: true, playing: false };
   if (!response.ok) {
     const failure = await explainFailure(response);
-    return { ok: false, reason: failure === 'already' ? 'error' : failure };
+    return { ok: false, ...failure, reason: failure.reason === 'already' ? 'error' : failure.reason };
   }
   try {
     const state = await response.json();
@@ -341,25 +341,28 @@ async function readPlaybackState(minLifetimeMs = 0) {
   }
 }
 
+// Renvoie { reason } et, quand Spotify a donné une explication, { detail } : son message, tel quel,
+// pour que la personne (ou toi) puisse savoir précisément ce qui est refusé.
 async function explainFailure(response) {
-  if (response.status === 429) return 'rate-limit';
+  if (response.status === 429) return { reason: 'rate-limit' };
 
   let apiReason = '';
   let apiMessage = '';
   try {
     const error = (await response.json()).error;
     apiReason = error?.reason ?? '';
-    apiMessage = error?.message ?? '';
+    apiMessage = typeof error?.message === 'string' ? error.message.slice(0, 200) : '';
   } catch {
     // Pas de détail lisible : on se fie au code de la réponse.
   }
+  const detail = apiMessage ? { detail: apiMessage } : {};
   // « Restriction violated » : la commande demandée ne change rien (play alors que ça joue déjà, pause alors
   // que c'est déjà en pause). Ce n'est pas un refus d'accès : l'état voulu est déjà atteint.
-  if (response.status === 403 && /restriction violated/i.test(apiMessage)) return 'already';
-  if (response.status === 404 || apiReason === 'NO_ACTIVE_DEVICE') return 'no-device';
-  if (apiReason === 'PREMIUM_REQUIRED') return 'premium';
-  if (response.status === 403) return 'forbidden';
-  return 'error';
+  if (response.status === 403 && /restriction violated/i.test(apiMessage)) return { reason: 'already' };
+  if (response.status === 404 || apiReason === 'NO_ACTIVE_DEVICE') return { reason: 'no-device' };
+  if (apiReason === 'PREMIUM_REQUIRED') return { reason: 'premium' };
+  if (response.status === 403) return { reason: 'forbidden', ...detail };
+  return { reason: 'error', ...detail };
 }
 
 // Reprend la lecture en cours sur l'appareil actif (sans corps : on ne choisit pas de playlist).
