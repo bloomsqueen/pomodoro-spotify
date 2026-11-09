@@ -210,3 +210,22 @@ Décision : **hors périmètre pour l'instant.** Ce qui suit évite de refaire l
 - Non vérifié : la documentation du SDK et la création d'application sont derrière une connexion à un compte Deezer. Impossible de dire si de nouvelles applications peuvent encore être créées, ni comment piloter la lecture. Les conditions d'utilisation semblent anciennes.
 
 **Si la question revient :** se connecter sur developers.deezer.com pour vérifier que la création d'application est ouverte ; vérifier auprès d'Apple si un compte développeur payant est requis ; puis chiffrer le travail de réorganisation autour d'un « fournisseur de musique ».
+
+## 11. YouTube comme deuxième service de musique (idée évaluée le 9 novembre 2026, pas décidée)
+Décision : **en réserve.** Spotify reste le service du produit. Ce qui suit vient de ma connaissance de YouTube, **sans essai réel** : à vérifier avant de s'engager.
+
+**Pourquoi y penser.** Spotify limite l'appli à 5 utilisateurs ajoutés à la main (voir la section 8) et réserve le mode sans limite à des organisations. Avec un lecteur YouTube intégré, il n'y aurait ni connexion, ni jeton, ni liste d'utilisateurs, ni compte Premium à exiger : n'importe qui pourrait s'en servir.
+
+**La différence de fond (la même que pour Apple Music et Deezer, section 10).** YouTube ne permet pas de contrôler l'appli YouTube ou YouTube Music de la personne. Ce qui existe : un lecteur YouTube intégré dans la page, piloté par du code. La page devient le lecteur, pas une télécommande.
+
+**Contraintes probables.**
+- Plus de « reprise de la lecture en cours » : la personne doit coller le lien d'une vidéo ou d'une playlist (cela touche à la décision « pas de choix de playlist »).
+- Publicités, sauf abonnement YouTube Premium de la personne.
+- La lecture automatique peut être bloquée par le navigateur, surtout au redémarrage après la pause (F6).
+- Certaines vidéos refusent l'intégration.
+- La musique s'arrête si l'onglet est fermé ; à vérifier : ce qui se passe si l'onglet est caché ou endormi (F4, F9).
+- Un script externe serait chargé depuis YouTube, ce qui irait contre la règle « aucune dépendance externe » (comme MusicKit pour Apple Music).
+
+**Impact sur le code.** Il faudrait réorganiser l'appli autour d'un « fournisseur de musique » (Spotify ou YouTube) avec les mêmes opérations : lancer, mettre en pause, lire l'état. F1, F4, F6 en dépendent.
+
+**Si la question revient :** décider d'abord si le contrôle de la musique de l'utilisateur reste au cœur du produit (décision du propriétaire) ; puis un petit essai jetable (une page avec un lecteur YouTube qui se met en pause à la fin d'un timer, onglet caché pendant 45 minutes, dans Arc).
